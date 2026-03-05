@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAdminAccess } from '../../../../../src/lib/supabase/api';
-import { createClient } from '../../../../../src/lib/supabase/server';
+import { checkAdminAccess } from '@/lib/supabase/api';
+import { createClient } from '@/lib/supabase/server';
 
 // GET /api/admin/users/[id] - Get user details
 export async function GET(
@@ -87,7 +87,7 @@ export async function DELETE(
     }
 
     const supabase = await createClient();
-    
+
     // Get current admin user to prevent self-deactivation
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     if (currentUser?.id === resolvedParams.id) {
@@ -122,12 +122,12 @@ export async function DELETE(
     // Instead of actually deleting, we'll mark the user as deactivated
     // You might want to add a 'is_active' column to your users table
     // For now, we'll use a soft delete approach by updating the email to mark as deactivated
-    
+
     const deactivatedEmail = `deactivated_${Date.now()}_${targetUser.email}`;
-    
+
     const { error: updateError } = await supabase
       .from('users')
-      .update({ 
+      .update({
         email: deactivatedEmail,
         updated_at: new Date().toISOString()
       })

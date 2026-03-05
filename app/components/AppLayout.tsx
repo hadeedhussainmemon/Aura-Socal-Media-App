@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { QueryProvider } from '../../src/lib/react-query/QueryProvider';
-import { AuthProvider, useUserContext } from '../../src/context/SupabaseAuthContext';
+import { SessionProvider, useSession } from 'next-auth/react';
 import Topbar from '../../src/components/shared/Topbar';
 import LeftSidebar from '../../src/components/shared/LeftSidebar';
 import Bottombar from '../../src/components/shared/Bottombar';
@@ -10,16 +10,16 @@ import { Toaster } from '../../src/components/ui/toaster';
 import { useRouter } from 'next/navigation';
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useUserContext();
+  const { status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (status === 'unauthenticated') {
       router.push('/sign-in');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [status, router]);
 
-  if (isLoading) {
+  if (status === 'loading') {
     return (
       <div className="flex-center w-full h-screen">
         <div>Loading...</div>
@@ -27,7 +27,7 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (status === 'unauthenticated') {
     return null;
   }
 
@@ -57,13 +57,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <QueryProvider>
-      <AuthProvider>
+    <SessionProvider>
+      <QueryProvider>
         <AuthenticatedLayout>
           {children}
         </AuthenticatedLayout>
         <Toaster />
-      </AuthProvider>
-    </QueryProvider>
+      </QueryProvider>
+    </SessionProvider>
   );
 }

@@ -1,39 +1,30 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { Button } from "../ui/button";
-import { useUserContext } from "@/context/SupabaseAuthContext";
-import { useSignOutAccount, useCheckAdminAccess } from "@/lib/react-query/queriesAndMutations";
+import { useSession, signOut } from "next-auth/react";
 import NotificationBell from "@/components/shared/NotificationBell";
 
 const Topbar = () => {
-  const router = useRouter();
-  const { user } = useUserContext();
-  const { mutate: signOut, isSuccess } = useSignOutAccount();
-  const { data: isAdmin } = useCheckAdminAccess();
+  const { data: session } = useSession();
+  const user = session?.user;
 
-  useEffect(() => {
-    if (isSuccess) router.push("/sign-in");
-  }, [isSuccess, router]);
+  // Placeholder for Admin check, needs to be updated with NextAuth later
+  const isAdmin = false;
 
   return (
     <section className="topbar">
       <div className="flex-between py-4 px-5">
         <Link href="/" className="flex gap-3 items-center">
-          <img
-            src="/assets/images/logo.svg"
-            alt="logo"
-            width={130}
-            height={325}
-          />
+          <div className="w-16 h-auto text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-400 tracking-tighter">
+            Aura
+          </div>
         </Link>
 
         <div className="flex gap-2 items-center">
           <NotificationBell />
-          
+
           {/* Admin Button - only show if user has admin access */}
           {isAdmin && (
             <Link href="/admin">
@@ -41,24 +32,24 @@ const Topbar = () => {
                 className="shad-button_ghost p-2"
                 title="Admin Dashboard"
               >
-                <img 
-                  src="/assets/icons/filter.svg" 
-                  alt="admin" 
+                <img
+                  src="/assets/icons/filter.svg"
+                  alt="admin"
                   width={18}
                   height={18}
                 />
               </Button>
             </Link>
           )}
-          
+
           <Button
             className="shad-button_ghost p-2"
-            onClick={() => signOut()}>
+            onClick={() => signOut({ callbackUrl: '/sign-in' })}>
             <img src="/assets/icons/logout.svg" alt="logout" width={18} height={18} />
           </Button>
           <Link href={`/profile/${user?.id}`} className="flex-center">
             <img
-              src={user?.image_url || "/assets/icons/profile-placeholder.svg"}
+              src={user?.image || "/assets/icons/profile-placeholder.svg"}
               alt="profile"
               className="h-7 w-7 rounded-full"
             />

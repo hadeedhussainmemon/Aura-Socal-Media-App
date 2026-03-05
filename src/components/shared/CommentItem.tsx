@@ -1,22 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { useUserContext } from "@/context/SupabaseAuthContext";
-import { Comment, likeComment, unlikeComment, deleteComment, getCommentLikeStatus } from "@/lib/supabase/api";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { multiFormatDateString } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import CommentForm from "@/components/forms/CommentForm";
 import Image from "next/image";
 import Link from "next/link";
 
+export type CommentType = {
+  id: string;
+  _id?: string;
+  content: string;
+  user_id: string;
+  post_id: string;
+  parent_id?: string | null;
+  created_at: string;
+  is_edited: boolean;
+  user: {
+    id: string;
+    name: string;
+    username: string;
+    image_url: string;
+  };
+  _count?: {
+    likes: number;
+    replies: number;
+  };
+  replies?: CommentType[];
+};
+
 type CommentItemProps = {
-  comment: Comment;
+  comment: CommentType;
   onCommentUpdated?: () => void;
   level?: number;
 };
 
 const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps) => {
-  const { user } = useUserContext();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(comment._count?.likes || 0);
   const [isLiking, setIsLiking] = useState(false);
@@ -25,26 +47,38 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Check if user has liked this comment
-  useState(() => {
-    if (user && comment.id) {
-      getCommentLikeStatus(comment.id, user.id).then(setIsLiked);
-    }
-  });
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      if (user && (comment.id || comment._id)) {
+        try {
+          const commentId = comment.id || comment._id;
+          const res = await fetch(`/api/comments/${commentId}/like-status?userId=${user.id || (user as any)._id}`);
+          if (res.ok) {
+            const data = await res.json();
+            setIsLiked(data.isLiked);
+          }
+        } catch (error) {
+          console.error("Failed to check like status:", error);
+        }
+      }
+    };
+    checkLikeStatus();
+  }, [user, comment.id, comment._id]);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
 
     setIsLiking(true);
+    const commentId = comment.id || comment._id;
     try {
-      if (isLiked) {
-        const success = await unlikeComment(comment.id, user.id);
-        if (success) {
+      const res = await fetch(`/api/comments/${commentId}/like`, {
+        method: isLiked ? 'DELETE' : 'POST',
+      });
+      if (res.ok) {
+        if (isLiked) {
           setIsLiked(false);
           setLikesCount(prev => Math.max(0, prev - 1));
-        }
-      } else {
-        const success = await likeComment(comment.id, user.id);
-        if (success) {
+        } else {
           setIsLiked(true);
           setLikesCount(prev => prev + 1);
         }
@@ -63,8 +97,9 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
 
     setIsDeleting(true);
     try {
-      const success = await deleteComment(comment.id);
-      if (success) {
+      const commentId = comment.id || comment._id;
+      const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
+      if (res.ok) {
         onCommentUpdated?.();
       }
     } catch (error) {
@@ -80,7 +115,7 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
     onCommentUpdated?.();
   };
 
-  const isOwner = user?.id === comment.user_id;
+  const isOwner = user?.id === comment.user_id || (user as any)?._id === comment.user_id;
   const hasReplies = comment.replies && comment.replies.length > 0;
   const replyCount = comment._count?.replies || 0;
 
@@ -101,7 +136,7 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
         {/* Comment Content */}
         <div className="bg-dark-4 rounded-lg px-3 py-2">
           <div className="flex items-center gap-2 mb-1">
-            <Link 
+            <Link
               href={`/profile/${comment.user.id}`}
               className="text-sm font-medium text-light-1 hover:text-primary-500"
             >
@@ -114,7 +149,7 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
               <span className="text-xs text-light-4">• edited</span>
             )}
           </div>
-          
+
           <p className="text-sm text-light-2 whitespace-pre-wrap break-words">
             {comment.content}
           </p>
@@ -171,7 +206,7 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
           <div className="mt-2">
             <CommentForm
               postId={comment.post_id}
-              parentId={comment.id}
+              parentId={comment.id || comment._id}
               onCommentCreated={handleReplyCreated}
               onCancel={() => setShowReplyForm(false)}
               placeholder={`Reply to ${comment.user.name}...`}
@@ -197,7 +232,7 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
           <div className="mt-2 space-y-3">
             {comment.replies?.map((reply) => (
               <CommentItem
-                key={reply.id}
+                key={reply.id || reply._id}
                 comment={reply}
                 onCommentUpdated={onCommentUpdated}
                 level={level + 1}

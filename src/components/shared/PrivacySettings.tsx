@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useUserContext } from "@/context/SupabaseAuthContext";
+import { useSession } from "next-auth/react";
 import { useUpdateUser } from "@/lib/react-query/queriesAndMutations";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,8 @@ type PrivacySettingsProps = {
 };
 
 const PrivacySettings = ({ currentPrivacy, userId, onClose }: PrivacySettingsProps) => {
-  const { user, setUser } = useUserContext();
+  const { data: session, update } = useSession();
+  const user = session?.user;
   const { toast } = useToast();
   const [selectedPrivacy, setSelectedPrivacy] = useState(currentPrivacy || "public");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -47,18 +48,21 @@ const PrivacySettings = ({ currentPrivacy, userId, onClose }: PrivacySettingsPro
         userId: userId,
         privacy_setting: selectedPrivacy as "public" | "private" | "followers_only",
         name: user.name || "",
-        username: user.username || "",
+        username: (user as any).username || "",
         email: user.email || "",
-        bio: user.bio || "",
+        bio: (user as any).bio || "",
         file: [],
-        imageUrl: user.image_url || undefined,
+        imageUrl: user.image || undefined,
       });
 
       if (updatedUser && user) {
-        // Update the context
-        setUser({
-          ...user,
-          privacy_setting: updatedUser.privacy_setting,
+        // Update the session context (placeholder)
+        update({
+          ...session,
+          user: {
+            ...user,
+            privacy_setting: updatedUser.privacy_setting,
+          }
         });
 
         const selectedSetting = PRIVACY_SETTINGS.find(s => s.value === selectedPrivacy);
@@ -117,7 +121,7 @@ const PrivacySettings = ({ currentPrivacy, userId, onClose }: PrivacySettingsPro
           <label className="text-light-2 text-sm font-medium mb-3 block">
             Who can see your posts?
           </label>
-          
+
           {/* Custom Privacy Selector */}
           <Select value={selectedPrivacy} onValueChange={setSelectedPrivacy}>
             <SelectTrigger className="w-full h-12 bg-dark-3 border border-dark-4 rounded-lg text-light-1 hover:bg-dark-4 transition-colors">
@@ -135,8 +139,8 @@ const PrivacySettings = ({ currentPrivacy, userId, onClose }: PrivacySettingsPro
             </SelectTrigger>
             <SelectContent className="bg-dark-2 border border-dark-4">
               {PRIVACY_SETTINGS.map((setting) => (
-                <SelectItem 
-                  key={setting.value} 
+                <SelectItem
+                  key={setting.value}
                   value={setting.value}
                   className="hover:bg-dark-3 focus:bg-dark-3 cursor-pointer p-3"
                 >

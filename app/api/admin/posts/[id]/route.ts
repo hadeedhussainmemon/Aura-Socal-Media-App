@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAdminAccess } from '../../../../../src/lib/supabase/api';
-import { createClient } from '../../../../../src/lib/supabase/server';
+import { checkAdminAccess } from '@/lib/supabase/api';
+import { createClient } from '@/lib/supabase/server';
 
 // DELETE /api/admin/posts/[id] - Delete any post
 export async function DELETE(
@@ -19,7 +19,7 @@ export async function DELETE(
     }
 
     const supabase = await createClient();
-    
+
     // Check if post exists
     const { data: post, error: fetchError } = await supabase
       .from('posts')
@@ -57,7 +57,7 @@ export async function DELETE(
           const { error: storageError } = await supabase.storage
             .from('files')
             .remove([fileName]);
-          
+
           if (storageError) {
             console.warn('Could not delete image from storage:', storageError);
           }

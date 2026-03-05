@@ -1,30 +1,35 @@
 "use client";
 
+import { useState } from "react";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
+
 import { PostValidation } from "@/lib/validation";
 import { useToast } from "@/components/ui/use-toast";
-import { useUserContext } from "@/context/SupabaseAuthContext";
 import FileUploader from "../shared/FileUploader";
 import Loader from "../shared/Loader";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui";
-import { useCreatePost, useUpdatePost } from "@/lib/react-query/queriesAndMutations";
 import { POST_CATEGORIES } from "@/constants";
 
 type PostFormProps = {
-  post?: any; // TODO: Add proper Supabase Post type
+  post?: any;
   action: "Create" | "Update";
 };
 
 const PostForm = ({ post, action }: PostFormProps) => {
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useUserContext();
+  const { data: session } = useSession();
+  const user = session?.user;
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
     defaultValues: {
@@ -36,71 +41,62 @@ const PostForm = ({ post, action }: PostFormProps) => {
     },
   });
 
-  // Query
-  const { mutateAsync: createPost, isPending: isLoadingCreate } =
-    useCreatePost();
-  const { mutateAsync: updatePost, isPending: isLoadingUpdate } =
-    useUpdatePost();
-
   // Handler
   const handleSubmit = async (value: z.infer<typeof PostValidation>) => {
-    console.log('PostForm - Current user:', user)
-    console.log('PostForm - User ID:', user?.id)
-    
     if (!user?.id) {
       toast({
-        title: "Authentication required. Please login again.",
+        title: "Authentication required",
+        description: "Please login to create a post.",
         variant: "destructive",
       });
       return;
     }
-    
+
+    setIsLoading(true);
+
     try {
-      // ACTION = UPDATE
-      if (post && action === "Update") {
-        const updatedPost = await updatePost({
-          ...value,
-          postId: post.id,
-          imageUrl: post.image_url,
-        });
+      // Create FormData to handle file upload
+      const formData = new FormData();
+      formData.append("caption", value.caption);
+      formData.append("location", value.location);
+      formData.append("tags", value.tags);
+      formData.append("category", value.category);
+      formData.append("userId", user.id);
 
-        if (!updatedPost) {
-          toast({
-            title: `${action} post failed. Please try again.`,
-          });
-          return;
-        }
-        
-        toast({
-          title: `Post ${action.toLowerCase()}d successfully!`,
-        });
-        return router.push(`/posts/${post.id}`);
+      if (value.file && value.file.length > 0) {
+        formData.append("file", value.file[0]);
       }
 
-      // ACTION = CREATE
-      console.log('PostForm - About to create post with userId:', user.id)
-      const newPost = await createPost({
-        ...value,
-        userId: user.id,
-      });
-
-      if (!newPost) {
-        toast({
-          title: `${action} post failed. Please try again.`,
+      if (action === "Update" && post) {
+        formData.append("postId", post._id);
+        const res = await fetch(`/api/posts/${post._id}`, {
+          method: "PUT",
+          body: formData,
         });
-        return;
+
+        if (!res.ok) throw new Error("Failed to update post");
+
+        toast({ title: "Post updated successfully!" });
+        router.push(`/posts/${post._id}`);
+      } else {
+        const res = await fetch("/api/posts", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error("Failed to create post");
+
+        toast({ title: "Post created successfully!" });
+        router.push("/");
       }
-      
-      toast({
-        title: `Post ${action.toLowerCase()}d successfully!`,
-      });
-      router.push("/");
     } catch (error) {
       console.error(`Error ${action.toLowerCase()}ing post:`, error);
       toast({
         title: `${action} post failed. Please try again.`,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -208,14 +204,15 @@ const PostForm = ({ post, action }: PostFormProps) => {
           <Button
             type="button"
             className="shad-button_dark_4"
+            disabled={isLoading}
             onClick={() => router.back()}>
             Cancel
           </Button>
           <Button
             type="submit"
             className="shad-button_primary whitespace-nowrap"
-            disabled={isLoadingCreate || isLoadingUpdate}>
-            {(isLoadingCreate || isLoadingUpdate) && <Loader />}
+            disabled={isLoading}>
+            {isLoading && <Loader />}
             {action} Post
           </Button>
         </div>

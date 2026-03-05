@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useUserContext } from "@/context/SupabaseAuthContext";
+import { useSession } from "next-auth/react";
 import PostStats from "./PostStats";
 
 type GridPostListProps = {
-  posts: any[]; // Posts array from Supabase
+  posts: any[]; // Posts array
   showUser?: boolean;
   showStats?: boolean;
   showComments?: boolean;
@@ -17,7 +17,8 @@ const GridPostList = ({
   showStats = true,
   showComments = true,
 }: GridPostListProps) => {
-  const { user } = useUserContext();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   return (
     <ul className="grid-container">
@@ -46,9 +47,9 @@ const GridPostList = ({
               </div>
             )}
             {showStats && (
-              <PostStats 
-                post={post} 
-                userId={user?.id || ""} 
+              <PostStats
+                post={post}
+                userId={user?.id || (user as any)?._id || ""}
                 showComments={showComments}
                 onCommentClick={() => {
                   // For grid view, navigate to post detail page for comments

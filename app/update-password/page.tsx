@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import * as z from 'zod';
 
 import { Button } from '../../src/components/ui/button';
@@ -28,11 +27,10 @@ type UpdatePasswordFormData = z.infer<typeof UpdatePasswordSchema>;
 export default function UpdatePassword() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [success, setSuccess] = useState(false);
 
-  const supabase = createClientComponentClient();
+  // Directly set to true as a placeholder until magic link / OTP flow is built in
+  const [isAuthenticated] = useState(true);
+  const [success, setSuccess] = useState(false);
 
   const form = useForm<UpdatePasswordFormData>({
     resolver: zodResolver(UpdatePasswordSchema),
@@ -42,50 +40,19 @@ export default function UpdatePassword() {
     },
   });
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Check if user is authenticated
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (session && !error) {
-          console.log('User authenticated, can update password');
-          setIsAuthenticated(true);
-        } else {
-          console.log('User not authenticated');
-          toast({
-            title: "Authentication required",
-            description: "Please click the link from your email to access this page.",
-            variant: "destructive",
-          });
-          router.push('/forgot-password');
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        router.push('/forgot-password');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event);
-      if (event === 'SIGNED_IN' && session) {
-        setIsAuthenticated(true);
-        setIsLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase.auth, toast, router]);
-
   const updatePasswordMutation = useMutation({
     mutationFn: async (password: string) => {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      // Placeholder for updating password
+      const res = await fetch('/api/auth/update-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to update password");
+      }
     },
     onSuccess: () => {
       setSuccess(true);
@@ -93,10 +60,9 @@ export default function UpdatePassword() {
         title: "Password updated successfully!",
         description: "You can now sign in with your new password.",
       });
-      
-      // Sign out and redirect to sign-in after 3 seconds
-      setTimeout(async () => {
-        await supabase.auth.signOut();
+
+      // Redirect to sign-in after 3 seconds
+      setTimeout(() => {
         router.push('/sign-in');
       }, 3000);
     },
@@ -112,25 +78,6 @@ export default function UpdatePassword() {
   const onSubmit = (values: UpdatePasswordFormData) => {
     updatePasswordMutation.mutate(values.password);
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex-center size-full min-h-screen">
-        <div className="flex-center flex-col">
-          <div className="flex-center">
-            <Image
-              src="/assets/icons/loader.svg"
-              alt="Loading"
-              width={24}
-              height={24}
-              className="animate-spin"
-            />
-          </div>
-          <p className="small-medium text-light-2 mt-2">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!isAuthenticated) {
     return (
@@ -241,8 +188,8 @@ export default function UpdatePassword() {
                 )}
               />
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="shad-button_primary"
                 disabled={updatePasswordMutation.isPending}
               >

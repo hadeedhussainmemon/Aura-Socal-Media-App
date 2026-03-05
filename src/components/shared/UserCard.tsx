@@ -1,35 +1,36 @@
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { useIsFollowing, useFollowUser, useUnfollowUser } from "@/lib/react-query/queriesAndMutations";
-import { useUserContext } from "@/context/SupabaseAuthContext";
+import { useSession } from "next-auth/react";
 
 type UserCardProps = {
-  user: any; // TODO: Add proper Supabase user type
+  user: any; // User type
 };
 
 const UserCard = ({ user }: UserCardProps) => {
-  const { user: currentUser } = useUserContext();
-  const { data: isCurrentlyFollowing, isLoading: isFollowingLoading } = useIsFollowing(user.id);
+  const { data: session } = useSession();
+  const currentUser = session?.user;
+  const { data: isCurrentlyFollowing, isLoading: isFollowingLoading } = useIsFollowing(user.id || user._id);
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
-  
+
   const handleFollowToggle = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigation when clicking the button
     e.stopPropagation();
-    
+
     if (isCurrentlyFollowing) {
-      unfollowMutation.mutate(user.id);
+      unfollowMutation.mutate(user.id || user._id);
     } else {
-      followMutation.mutate(user.id);
+      followMutation.mutate(user.id || user._id);
     }
   };
 
-  const isOwnProfile = currentUser?.id === user.id;
+  const isOwnProfile = currentUser?.id === user.id || (currentUser as any)?._id === user._id;
 
   return (
-    <Link href={`/profile/${user.id}`} className="user-card">
+    <Link href={`/profile/${user.id || user._id}`} className="user-card">
       <img
-        src={user.image_url || "/assets/icons/profile-placeholder.svg"}
+        src={user.image_url || user.imageUrl || "/assets/icons/profile-placeholder.svg"}
         alt="creator"
         className="rounded-full w-14 h-14"
       />
@@ -44,21 +45,20 @@ const UserCard = ({ user }: UserCardProps) => {
       </div>
 
       {!isOwnProfile && (
-        <Button 
-          type="button" 
-          size="sm" 
-          className={`px-5 ${
-            isCurrentlyFollowing 
-              ? "bg-dark-4 hover:bg-dark-3 text-light-1" 
+        <Button
+          type="button"
+          size="sm"
+          className={`px-5 ${isCurrentlyFollowing
+              ? "bg-dark-4 hover:bg-dark-3 text-light-1"
               : "shad-button_primary"
-          }`}
+            }`}
           onClick={handleFollowToggle}
           disabled={followMutation.isPending || unfollowMutation.isPending || isFollowingLoading}
         >
-          {followMutation.isPending || unfollowMutation.isPending 
-            ? "Loading..." 
-            : isCurrentlyFollowing 
-              ? "Following" 
+          {followMutation.isPending || unfollowMutation.isPending
+            ? "Loading..."
+            : isCurrentlyFollowing
+              ? "Following"
               : "Follow"
           }
         </Button>

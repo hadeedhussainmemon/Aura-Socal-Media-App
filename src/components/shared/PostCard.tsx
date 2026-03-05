@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { multiFormatDateString } from "@/lib/utils";
-import { useUserContext } from "@/context/SupabaseAuthContext";
+import { useSession } from "next-auth/react";
 import { useDeletePost } from "@/lib/react-query/queriesAndMutations";
 import { Button } from "@/components/ui/button";
 import PostStats from "./PostStats";
@@ -15,7 +15,8 @@ type PostCardProps = {
 };
 
 const PostCard = ({ post }: PostCardProps) => {
-  const { user } = useUserContext();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [showComments, setShowComments] = useState(false);
   const { mutate: deletePost } = useDeletePost();
 
@@ -79,7 +80,7 @@ const PostCard = ({ post }: PostCardProps) => {
               height={20}
             />
           </Link>
-          
+
           <Button
             onClick={handleDeletePost}
             variant="ghost"
@@ -114,21 +115,21 @@ const PostCard = ({ post }: PostCardProps) => {
         />
       </Link>
 
-      <PostStats 
-        post={post} 
-        userId={user?.id || ""} 
+      <PostStats
+        post={post}
+        userId={(user as any)?.id || (user as any)?._id || ""}
         onCommentClick={handleCommentClick}
       />
 
       {/* Comments Section */}
       {showComments && (
         <div className="border-t border-dark-4 pt-2">
-          <QuickComment 
-            postId={post.id} 
+          <QuickComment
+            postId={post.id}
             onCommentAdded={() => {
               // Optionally refresh post data or show success message
               console.log('Comment added successfully!');
-            }} 
+            }}
           />
         </div>
       )}

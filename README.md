@@ -55,8 +55,8 @@ SociaLens is a feature-rich social media platform built with Next.js 15, React, 
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/maazajaz/socialens.git
-cd socialens-nextjs
+git clone https://github.com/maazajaz/aura.git
+cd aura-nextjs
 ```
 
 2. **Install dependencies:**
@@ -311,8 +311,8 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## 🌐 Official Links
 
-- **Live Application**: [https://socialens.in](https://socialens.in)
-- **GitHub Repository**: [https://github.com/maazajaz/socialens](https://github.com/maazajaz/socialens)
+- **Live Application**: [https://aura.in](https://aura.in)
+- **GitHub Repository**: [https://github.com/maazajaz/aura](https://github.com/maazajaz/aura)
 - **Documentation**: Available in repository wiki
 
 ## 👨‍💻 Author
@@ -342,10 +342,10 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## 📊 Repository Stats
 
-![GitHub stars](https://img.shields.io/github/stars/maazajaz/socialens)
-![GitHub forks](https://img.shields.io/github/forks/maazajaz/socialens)
-![GitHub issues](https://img.shields.io/github/issues/maazajaz/socialens)
-![GitHub license](https://img.shields.io/github/license/maazajaz/socialens)
+![GitHub stars](https://img.shields.io/github/stars/maazajaz/aura)
+![GitHub forks](https://img.shields.io/github/forks/maazajaz/aura)
+![GitHub issues](https://img.shields.io/github/issues/maazajaz/aura)
+![GitHub license](https://img.shields.io/github/license/maazajaz/aura)
 
 ---
 

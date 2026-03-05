@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAdminAccess } from '../../../../src/lib/supabase/api';
-import { createClient } from '../../../../src/lib/supabase/server';
+import { checkAdminAccess } from '@/lib/supabase/api';
+import { createClient } from '@/lib/supabase/server';
 
 // GET /api/admin/posts - List all posts
 export async function GET(request: NextRequest) {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
-    
+
     const offset = (page - 1) * limit;
 
     let query = supabase

@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import * as z from 'zod';
 
 import { Button } from '../../src/components/ui/button';
@@ -34,8 +33,6 @@ function ResetPasswordForm() {
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [success, setSuccess] = useState(false);
 
-  const supabase = createClientComponentClient();
-
   const form = useForm<ResetPasswordFormData>({
     resolver: zodResolver(ResetPasswordSchema),
     defaultValues: {
@@ -58,15 +55,17 @@ function ResetPasswordForm() {
   // Send OTP mutation
   const sendOTPMutation = useMutation({
     mutationFn: async (email: string) => {
-      // Send OTP for password reset
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false,
-        }
+      // Send OTP for password reset (Placeholder for MongoDB implementation)
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
       });
-      
-      if (error) throw error;
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to send OTP');
+      }
     },
     onSuccess: () => {
       setStep('otp');
@@ -87,21 +86,21 @@ function ResetPasswordForm() {
   // Verify OTP and reset password mutation
   const resetPasswordMutation = useMutation({
     mutationFn: async (values: ResetPasswordFormData) => {
-      // Verify OTP and set new password
-      const { error } = await supabase.auth.verifyOtp({
-        email: values.email,
-        token: values.token,
-        type: 'email'
-      });
-      
-      if (error) throw error;
-
-      // Update password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: values.password
+      // Verify OTP and set new password (Placeholder for MongoDB implementation)
+      const res = await fetch('/api/auth/update-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: values.email,
+          token: values.token,
+          password: values.password
+        })
       });
 
-      if (updateError) throw updateError;
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to reset password');
+      }
     },
     onSuccess: () => {
       setSuccess(true);
@@ -109,7 +108,7 @@ function ResetPasswordForm() {
         title: "Password updated successfully! 🎉",
         description: "You can now sign in with your new password.",
       });
-      
+
       setTimeout(() => {
         router.push('/sign-in');
       }, 3000);
@@ -185,7 +184,7 @@ function ResetPasswordForm() {
               {step === 'email' ? 'Reset Your Password 🔐' : 'Enter Reset Code 📧'}
             </h2>
             <p className="text-light-3 small-medium md:base-regular mt-2">
-              {step === 'email' 
+              {step === 'email'
                 ? 'We\'ll send you a 6-digit code to reset your password'
                 : 'Enter the 6-digit code sent to your email'
               }
@@ -202,11 +201,11 @@ function ResetPasswordForm() {
                   <FormItem>
                     <FormLabel className="shad-form_label">Email</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="email" 
-                        className="shad-input" 
+                      <Input
+                        type="email"
+                        className="shad-input"
                         disabled={step === 'otp'}
-                        {...field} 
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -223,12 +222,12 @@ function ResetPasswordForm() {
                       <FormItem>
                         <FormLabel className="shad-form_label">Reset Code</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="text" 
+                          <Input
+                            type="text"
                             placeholder="Enter 6-digit code"
                             maxLength={6}
-                            className="shad-input text-center font-mono text-lg tracking-widest" 
-                            {...field} 
+                            className="shad-input text-center font-mono text-lg tracking-widest"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -266,8 +265,8 @@ function ResetPasswordForm() {
                 </>
               )}
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="shad-button_primary"
                 disabled={sendOTPMutation.isPending || resetPasswordMutation.isPending}
               >
@@ -288,9 +287,9 @@ function ResetPasswordForm() {
               </Button>
 
               {step === 'otp' && (
-                <Button 
-                  type="button" 
-                  variant="ghost" 
+                <Button
+                  type="button"
+                  variant="ghost"
                   className="text-primary-500 hover:text-primary-600"
                   onClick={() => {
                     setStep('email');

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAdminStats } from '../../../../src/lib/supabase/api';
+import { getAdminStats } from '@/lib/supabase/api';
 
 // GET /api/admin/stats - Get basic statistics
 export async function GET() {
@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json(stats);
   } catch (error) {
     console.error('Admin stats API error:', error);
-    
+
     // Check if it's an access error
     if (error instanceof Error && error.message.includes('Access denied')) {
       return NextResponse.json(

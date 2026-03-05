@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useUserContext } from "@/context/SupabaseAuthContext";
-import { createComment } from "@/lib/supabase/api";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
@@ -24,26 +23,33 @@ const CommentForm = ({
   placeholder = "Write a comment...",
   autoFocus = false,
 }: CommentFormProps) => {
-  const { user } = useUserContext();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!comment.trim() || !user || isSubmitting) return;
 
     setIsSubmitting(true);
-    
+
     try {
-      const newComment = await createComment({
-        content: comment.trim(),
-        postId,
-        userId: user.id,
-        parentId,
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: comment.trim(),
+          postId,
+          userId: user.id || (user as any)._id,
+          parentId,
+        }),
       });
 
-      if (newComment) {
+      if (res.ok) {
         setComment("");
         onCommentCreated?.();
       }
@@ -66,13 +72,13 @@ const CommentForm = ({
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-3 w-full">
       <Image
-        src={user.image_url || "/assets/icons/profile-placeholder.svg"}
+        src={user.image || "/assets/icons/profile-placeholder.svg"}
         alt="Your profile"
         width={32}
         height={32}
         className="rounded-full"
       />
-      
+
       <div className="flex-1 flex items-center gap-2">
         <Input
           type="text"
@@ -85,7 +91,7 @@ const CommentForm = ({
           autoFocus={autoFocus}
           disabled={isSubmitting}
         />
-        
+
         <div className="flex items-center gap-1">
           {parentId && onCancel && (
             <Button
@@ -98,7 +104,7 @@ const CommentForm = ({
               Cancel
             </Button>
           )}
-          
+
           <Button
             type="submit"
             variant="ghost"

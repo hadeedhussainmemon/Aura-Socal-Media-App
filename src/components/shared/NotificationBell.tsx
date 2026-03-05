@@ -1,15 +1,12 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUserContext } from "@/context/SupabaseAuthContext";
-// @ts-ignore
-import { createClient } from "@/lib/supabase/client";
-const supabase = createClient();
+import { useSession } from "next-auth/react";
 
 type Notification = {
   id: string;
+  _id?: string;
   type: string;
   title: string;
   message: string;
@@ -21,88 +18,66 @@ type Notification = {
   action_url?: string;
   read?: boolean;
   created_at: string;
+  user?: { id: string; name: string; username: string; image_url?: string };
 };
 
 const NotificationBell = () => {
-  const { user } = useUserContext();
+  const { data: session } = useSession();
+  const user = session?.user;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // Fetch initial notifications with debug log
   useEffect(() => {
-    if (!user?.id) return;
-    // Subscribe to new notifications for the current user
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
-        async () => {
-          // Fetch latest notifications in real time
-          const res = await supabase
-            .from('notifications')
-            .select('*, user:users!notifications_from_user_id_fkey(id, name, username, image_url)')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-          const data = res.data as (Notification & { user?: { id: string; name: string; username: string; image_url?: string } })[] | null;
+    if (!user) return;
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch(`/api/users/${user.id || (user as any)._id}/notifications`);
+        if (res.ok) {
+          const data = await res.json();
           setNotifications(data || []);
           setUnreadCount((data || []).filter((n: Notification) => !n.read).length);
         }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
+      } catch (error) {
+        console.error("Error fetching notifications", error);
+      }
     };
-  }, [user?.id]);
+    fetchNotifications();
 
-  // Fetch initial notifications with debug log
-  useEffect(() => {
-    if (!user?.id) return;
-      supabase
-        .from('notifications')
-        .select('*, user:users!notifications_from_user_id_fkey(id, name, username, image_url)') // Join users table on from_user_id
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .then((res) => {
-          console.log('Notification debug (join):', res.data); // Debug log for join query
-          const data = res.data as (Notification & { user?: { id: string; name: string; username: string; image_url?: string } })[] | null;
-          setNotifications(data || []);
-          setUnreadCount((data || []).filter((n: Notification) => !n.read).length);
-        });
-  }, [user?.id]);
+    // Fallback polling for notifications interval
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleBellClick = async () => {
     const newDropdownState = !showDropdown;
     setShowDropdown(newDropdownState);
-    if (newDropdownState && user?.id) {
-      // Fetch latest notifications when opening dropdown
-      const res = await supabase
-        .from('notifications')
-        .select('*, user:users!notifications_from_user_id_fkey(id, name, username, image_url)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      const data = res.data as (Notification & { user?: { id: string; name: string; username: string; image_url?: string } })[] | null;
-      setNotifications(data || []);
-      setUnreadCount((data || []).filter((n: Notification) => !n.read).length);
-    }
-    // Mark all as read in the database
-    if (user?.id && notifications.length > 0) {
-      const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+
+    if (newDropdownState && user) {
+      // Mark all as read
+      const unreadIds = notifications.filter(n => !n.read).map(n => n.id || n._id);
       if (unreadIds.length > 0) {
-        await supabase
-          .from('notifications')
-          .update({ read: true })
-          .in('id', unreadIds)
-          .eq('user_id', user.id);
+        try {
+          await fetch(`/api/users/${user.id || (user as any)._id}/notifications/read`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: unreadIds })
+          });
+          // Update local state to reflect read status
+          setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        } catch (error) {
+          console.error(error);
+        }
       }
+      setUnreadCount(0);
     }
-    setUnreadCount(0);
   };
 
   return (
     <div className="relative">
       {/* Modern Bell Button */}
-      <motion.button 
+      <motion.button
         className="relative p-3 rounded-xl bg-dark-3/50 hover:bg-dark-2/70 border border-dark-4/50 hover:border-dark-4 transition-all duration-200 group"
         onClick={handleBellClick}
         whileHover={{ scale: 1.05 }}
@@ -113,25 +88,25 @@ const NotificationBell = () => {
           animate={unreadCount > 0 ? { rotate: [0, -10, 10, -10, 0] } : {}}
           transition={{ duration: 0.5, repeat: unreadCount > 0 ? Infinity : 0, repeatDelay: 3 }}
         >
-          <svg 
-            width="20" 
-            height="20" 
-            viewBox="0 0 24 24" 
-            fill="none" 
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
             className="text-light-2 group-hover:text-light-1 transition-colors"
           >
-            <path 
-              d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <path
+              d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <path 
-              d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <path
+              d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
@@ -181,7 +156,7 @@ const NotificationBell = () => {
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-light-1 flex items-center gap-2">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-primary-500">
-                    <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   Notifications
                 </h3>
@@ -196,7 +171,7 @@ const NotificationBell = () => {
             {/* Notifications List */}
             <div className="max-h-96 overflow-y-auto custom-scrollbar">
               {notifications.length === 0 ? (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="p-8 text-center"
@@ -204,7 +179,7 @@ const NotificationBell = () => {
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-dark-3 flex items-center justify-center">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-light-4">
-                        <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
                     <div>
@@ -217,13 +192,12 @@ const NotificationBell = () => {
                 <div className="divide-y divide-dark-4/30">
                   {notifications.map((n: any, index: number) => (
                     <motion.div
-                      key={n.id}
+                      key={n.id || n._id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`p-4 hover:bg-dark-3/30 transition-colors cursor-pointer ${
-                        !n.read ? 'bg-primary-500/5 border-l-2 border-l-primary-500' : ''
-                      }`}
+                      className={`p-4 hover:bg-dark-3/30 transition-colors cursor-pointer ${!n.read ? 'bg-primary-500/5 border-l-2 border-l-primary-500' : ''
+                        }`}
                     >
                       <div className="flex items-start gap-3">
                         {/* Avatar */}
@@ -234,7 +208,7 @@ const NotificationBell = () => {
                             className="w-10 h-10 rounded-full object-cover border border-dark-4"
                           />
                         </div>
-                        
+
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="text-sm text-light-1">
@@ -244,14 +218,14 @@ const NotificationBell = () => {
                             {n.user?.username ? ' ' : ''}
                             <span className="text-light-2">{n.message}</span>
                           </div>
-                          
+
                           <div className="flex items-center justify-between mt-2">
                             <p className="text-xs text-light-4">
-                              {new Date(n.created_at).toLocaleString([], { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
+                              {new Date(n.created_at).toLocaleString([], {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
                               })}
                             </p>
                             {!n.read && (
@@ -269,7 +243,7 @@ const NotificationBell = () => {
             {/* Footer (if needed) */}
             {notifications.length > 0 && (
               <div className="p-3 border-t border-dark-4/50 bg-dark-3/30">
-                <button 
+                <button
                   className="w-full text-xs text-light-3 hover:text-light-1 transition-colors"
                   onClick={() => setShowDropdown(false)}
                 >

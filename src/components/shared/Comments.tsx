@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPostComments, Comment } from "@/lib/supabase/api";
-import { useUserContext } from "@/context/SupabaseAuthContext";
+import { useSession } from "next-auth/react";
 import CommentForm from "@/components/forms/CommentForm";
-import CommentItem from "@/components/shared/CommentItem";
+import CommentItem, { CommentType } from "@/components/shared/CommentItem";
 import Loader from "@/components/shared/Loader";
 
 type CommentsProps = {
@@ -13,17 +12,21 @@ type CommentsProps = {
 };
 
 const Comments = ({ postId, className = "" }: CommentsProps) => {
-  const { user } = useUserContext();
-  const [comments, setComments] = useState<Comment[]>([]);
+  const { data: session } = useSession();
+  const user = session?.user;
+  const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [commentsCount, setCommentsCount] = useState(0);
 
   const fetchComments = async () => {
     try {
       setIsLoading(true);
-      const fetchedComments = await getPostComments(postId);
-      setComments(fetchedComments);
-      setCommentsCount(fetchedComments.length);
+      const res = await fetch(`/api/posts/${postId}/comments`);
+      if (res.ok) {
+        const fetchedComments = await res.json();
+        setComments(fetchedComments);
+        setCommentsCount(fetchedComments.length);
+      }
     } catch (error) {
       console.error("Error fetching comments:", error);
     } finally {
@@ -50,8 +53,8 @@ const Comments = ({ postId, className = "" }: CommentsProps) => {
       {/* Comments Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-medium text-light-1">
-          {commentsCount === 0 
-            ? "No comments yet" 
+          {commentsCount === 0
+            ? "No comments yet"
             : `${commentsCount} ${commentsCount === 1 ? "comment" : "comments"}`
           }
         </h3>
@@ -60,8 +63,8 @@ const Comments = ({ postId, className = "" }: CommentsProps) => {
       {/* Comment Form */}
       {user && (
         <div className="mb-6">
-          <CommentForm 
-            postId={postId} 
+          <CommentForm
+            postId={postId}
             onCommentCreated={handleCommentCreated}
             placeholder="Add a comment..."
           />
@@ -77,7 +80,7 @@ const Comments = ({ postId, className = "" }: CommentsProps) => {
         <div className="space-y-4">
           {comments.map((comment) => (
             <CommentItem
-              key={comment.id}
+              key={comment.id || comment._id}
               comment={comment}
               onCommentUpdated={handleCommentUpdated}
             />
