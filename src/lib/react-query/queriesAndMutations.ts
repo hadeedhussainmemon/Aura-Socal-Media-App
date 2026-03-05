@@ -8,85 +8,71 @@ import {
 import { useSession } from "next-auth/react";
 
 import {
-  createPost,
-  getCurrentUser,
-  getPostById,
-  getRecentPosts,
-  getUserById,
-  getUserPosts,
-  getFollowingFeed,
-  likePost,
-  deleteLike,
-  savePost,
-  deleteSave,
-  getSavedPosts,
-  getLikedPosts,
-  signInUser,
-  signOutUser,
-  signUpUser,
-  updatePost,
-  updateUser,
-  deletePost,
-  getUsers,
-  searchPosts,
-  getPublicUserById,
-  getPublicUserPosts,
-  getPublicFollowersCount,
-  getPublicFollowingCount,
-  getPublicPostById,
-  getInfinitePosts,
-  followUser,
-  unfollowUser,
-  getFollowersCount,
-  getFollowingCount,
-  isFollowing,
-  getFollowers,
-  getFollowing,
+  getRecentPostsServer,
+  getPostByIdServer,
+  getUserPostsServer,
+  getSavedPostsServer,
+  searchPostsServer,
+  likePostServer,
+  deleteLikeServer,
+  savePostServer,
+  deleteSaveServer,
+  createPostServer,
+  updatePostServer,
+  deletePostServer,
+  getLikedPostsServer,
+} from "../actions/post.actions";
+import {
+  getUserByIdServer,
+  getAllUsersServer,
+  searchUsersServer,
+  updateUserServer,
+  getCurrentUserServer,
+  followUserServer,
+  unfollowUserServer,
+  isFollowingServer,
+  getFollowingCountServer,
   getAdminStats,
   checkAdminAccess,
   getAdminUsers,
   addAdminUser,
   removeAdminUser,
-  sendPasswordResetEmail,
-  updateUserPassword,
-  createComment,
-  getPostComments,
-  updateComment,
-  deleteComment,
-  searchUsers,
-  // Admin management functions
   getAdminAllUsers,
   getAdminUserDetails,
-  deactivateUser,
   toggleUserActivation,
+  deactivateUser,
+  getPublicUserById,
+  getPublicFollowersCount,
+  getPublicFollowingCount,
+  sendPasswordResetEmail,
+  updateUserPassword,
+  getFollowers,
+  getFollowing,
+} from "../actions/user.actions";
+import {
+  createCommentServer,
+  getPostCommentsServer,
+  deleteCommentServer,
+  updateCommentServer,
+  likeCommentServer,
+  unlikeCommentServer,
+} from "../actions/comment.actions";
+import {
+  getFollowingFeedServer,
+  getInfinitePostsServer,
+  getPublicUserPosts,
+  getPublicPostById,
   getAdminAllPosts,
   adminDeletePost,
-} from "../supabase/api";
-import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
-import { QUERY_KEYS } from "./queryKeys";
+} from "../actions/post.actions";
+
+import { INewPost, IUpdatePost, IUpdateUser } from "@/types";
 import { notificationService } from "../utils/notificationService";
-export const useCreateUserAccount = () => {
-  return useMutation({
-    mutationFn: (user: INewUser) => signUpUser(user)
-  })
-}
-export const useSignInAccount = () => {
-  return useMutation({
-    mutationFn: (user: {
-      email: string;
-      password: string;
-    }) => signInUser(user)
-  })
-}
-export const useSignOutAccount = () => {
-  return useMutation({
-    mutationFn: signOutUser,
-  });
-};
+
 export const useCreatePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (post: INewPost) => createPost(post),
+    mutationFn: (post: INewPost) => createPostServer(post),
     onSuccess: async (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
@@ -99,13 +85,13 @@ export const useCreatePost = () => {
       // Create notifications for followers when a new post is created
       if (data && variables.userId) {
         try {
-          const user = await getCurrentUser();
+          const user = await getCurrentUserServer(variables.userId);
           if (user) {
             await notificationService.createNewPostNotifications(
-              data.id,
+              data?._id || data?.id,
               variables.userId,
               user.name || user.username || 'Unknown User',
-              user.image_url || '',
+              user.image || user.imageUrl || '',
               variables.caption || 'New post'
             );
 
@@ -127,7 +113,7 @@ export const useUpdatePost = () => {
     mutationFn: ({ postId, tags, ...postData }: IUpdatePost) => {
       // Convert tags string to array for API
       const tagsArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
-      return updatePost(postId, {
+      return updatePostServer(postId, {
         ...postData,
         tags: tagsArray.length > 0 ? tagsArray : undefined
       });
@@ -152,7 +138,7 @@ export const useUpdatePost = () => {
 export const useGetRecentPosts = () => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
-    queryFn: getRecentPosts,
+    queryFn: getRecentPostsServer,
     staleTime: 1000 * 60 * 2, // 2 minutes
     retry: (failureCount, error: any) => {
       console.log('Recent posts query failed:', error);
@@ -164,9 +150,14 @@ export const useGetRecentPosts = () => {
 };
 
 export const useGetFollowingFeed = (page: number = 1, limit: number = 20) => {
+  const { data: session } = useSession();
   return useQuery({
     queryKey: [QUERY_KEYS.GET_FOLLOWING_FEED, page],
-    queryFn: () => getFollowingFeed(page, limit),
+    queryFn: () => {
+      const userId = (session?.user as any)?.id || (session?.user as any)?._id;
+      return getFollowingFeedServer(userId, page, limit);
+    },
+    enabled: !!session?.user,
     staleTime: 1000 * 60 * 1, // 1 minute (shorter than recent posts for more freshness)
     retry: (failureCount, error: any) => {
       console.log('Following feed query failed:', error);
@@ -189,7 +180,7 @@ export const useLikePost = () => {
     }: {
       postId: string;
       userId: string;
-    }) => likePost(postId, userId), // Updated to match our Supabase API
+    }) => likePostServer(postId, userId), // Updated to match our MongoDB API
     onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_POST_BY_ID],
@@ -206,16 +197,16 @@ export const useLikePost = () => {
 
       // Create like notification
       try {
-        const post = await getPostById(variables.postId);
-        const user = await getCurrentUser();
+        const post = await getPostByIdServer(variables.postId);
+        const user = await getCurrentUserServer(variables.userId);
 
-        if (post && user && post.creator?.id !== variables.userId) {
+        if (post && user && (post.creator?.id || post.creator?._id) !== variables.userId) {
           await notificationService.createLikeNotification(
             variables.postId,
-            post.creator.id,
+            post.creator.id || post.creator._id,
             variables.userId,
             user.name || user.username || 'Unknown User',
-            user.image_url || ''
+            user.image || user.imageUrl || ''
           );
 
           // Invalidate notifications for the post owner
@@ -239,7 +230,7 @@ export const useDeleteLike = () => {
     }: {
       postId: string;
       userId: string;
-    }) => deleteLike(postId, userId),
+    }) => deleteLikeServer(postId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_POST_BY_ID],
@@ -261,7 +252,7 @@ export const useSavePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ userId, postId }: { userId: string; postId: string }) =>
-      savePost(postId, userId), // Note: swapped order to match our API
+      savePostServer(postId, userId), // Note: swapped order to match our API
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
@@ -283,7 +274,7 @@ export const useDeleteSavedPost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ postId, userId }: { postId: string; userId: string }) =>
-      deleteSave(postId, userId), // Updated to use our deleteSave function
+      deleteSaveServer(postId, userId), // Updated to use our deleteSave function
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
@@ -303,7 +294,10 @@ export const useDeleteSavedPost = () => {
 export const useGetCurrentUser = (enabled = true) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_CURRENT_USER],
-    queryFn: getCurrentUser,
+    queryFn: () => {
+      const userId = (session?.user as any)?.id || (session?.user as any)?._id;
+      return getCurrentUserServer(userId);
+    },
     enabled: enabled,
     retry: (failureCount, error) => {
       // Don't retry if it's an auth session missing error
@@ -321,7 +315,7 @@ export const useGetCurrentUser = (enabled = true) => {
 export const useGetPostById = (postId?: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_POST_BY_ID, postId],
-    queryFn: () => getPostById(postId!),
+    queryFn: () => getPostByIdServer(postId!),
     enabled: !!postId,
     staleTime: 1000 * 60 * 3, // 3 minutes
     retry: (failureCount, error: any) => {
@@ -335,7 +329,7 @@ export const useDeletePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ postId }: { postId: string }) =>
-      deletePost(postId),
+      deletePostServer(postId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
@@ -350,7 +344,7 @@ export const useDeletePost = () => {
 export const useGetUserPosts = (userId?: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_USER_POSTS, userId],
-    queryFn: () => getUserPosts(userId!),
+    queryFn: () => getUserPostsServer(userId!),
     enabled: !!userId,
   });
 };
@@ -360,7 +354,7 @@ import { InfiniteData } from "@tanstack/react-query";
 export const useGetPosts = () => {
   return useInfiniteQuery({
     queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
-    queryFn: ({ pageParam }) => getInfinitePosts({ pageParam }),
+    queryFn: ({ pageParam }) => getInfinitePostsServer({ pageParam }),
     getNextPageParam: (lastPage) => {
       if (!lastPage || !lastPage.documents || lastPage.documents.length === 0) {
         return null; // No more pages to fetch
@@ -389,7 +383,7 @@ export const useGetPosts = () => {
 export const useSearchPosts = (searchTerm: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.SEARCH_POSTS, searchTerm],
-    queryFn: () => searchPosts(searchTerm),
+    queryFn: () => searchPostsServer(searchTerm),
     enabled: !!searchTerm,
     staleTime: 1000 * 60 * 1, // 1 minute for search results
     retry: (failureCount, error: any) => {
@@ -403,14 +397,14 @@ export const useSearchPosts = (searchTerm: string) => {
 export const useGetUsers = (limit?: number) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_USERS],
-    queryFn: () => getUsers(limit),
+    queryFn: () => getAllUsersServer(limit),
   });
 };
 
 export const useSearchUsers = (searchTerm: string, limit?: number) => {
   return useQuery({
     queryKey: [QUERY_KEYS.SEARCH_USERS, searchTerm],
-    queryFn: () => searchUsers(searchTerm, limit),
+    queryFn: () => searchUsersServer(searchTerm, limit),
     enabled: !!searchTerm.trim(), // Only run query if search term exists
   });
 };
@@ -472,7 +466,7 @@ export const useRemoveAdminUser = () => {
 export const useGetSavedPosts = (userId?: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_SAVED_POSTS, userId],
-    queryFn: () => getSavedPosts(userId!),
+    queryFn: () => getSavedPostsServer(userId!),
     enabled: !!userId,
   });
 };
@@ -480,7 +474,7 @@ export const useGetSavedPosts = (userId?: string) => {
 export const useGetLikedPosts = (userId?: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_LIKED_POSTS, userId],
-    queryFn: () => getLikedPosts(userId!),
+    queryFn: () => getLikedPostsServer(userId!),
     enabled: !!userId,
   });
 };
@@ -488,7 +482,7 @@ export const useGetLikedPosts = (userId?: string) => {
 export const useGetUserById = (userId: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_USER_BY_ID, userId],
-    queryFn: () => getUserById(userId),
+    queryFn: () => getUserByIdServer(userId),
     enabled: !!userId,
   });
 };
@@ -541,7 +535,7 @@ export const useGetPublicPostById = (postId: string) => {
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ userId, ...userData }: IUpdateUser) => updateUser(userId, userData),
+    mutationFn: ({ userId, ...userData }: IUpdateUser) => updateUserServer(userId, userData),
     onSuccess: (data) => {
       // Invalidate current user queries
       queryClient.invalidateQueries({
@@ -594,7 +588,7 @@ export const useFollowUser = () => {
   return useMutation({
     mutationFn: (followingId: string) => {
       const followerId = (session?.user as any)?.id || (session?.user as any)?._id || "";
-      return followUser(followerId, followingId);
+      return followUserServer(followerId, followingId);
     },
     onMutate: async (userId) => {
       // Cancel any outgoing refetches
@@ -630,8 +624,8 @@ export const useFollowUser = () => {
           await notificationService.createFollowNotification(
             userId,
             user.id,
-            user.name,
-            user.image_url || ''
+            user.name || 'A User',
+            user.image || user.imageUrl || ''
           );
         } catch (error) {
           console.error('Failed to create follow notification:', error);
@@ -665,7 +659,10 @@ export const useFollowUser = () => {
 export const useUnfollowUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (userId: string) => unfollowUser(userId),
+    mutationFn: (followingId: string) => {
+      const followerId = (session?.user as any).id || (session?.user as any)._id || "";
+      return unfollowUserServer(followerId, followingId);
+    },
     onMutate: async (userId) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: [QUERY_KEYS.IS_FOLLOWING, userId] });
@@ -717,7 +714,7 @@ export const useUnfollowUser = () => {
 export const useGetFollowersCount = (userId: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_FOLLOWERS_COUNT, userId],
-    queryFn: () => getFollowersCount(userId),
+    queryFn: () => getFollowersCountServer(userId),
     enabled: !!userId,
   });
 };
@@ -725,16 +722,20 @@ export const useGetFollowersCount = (userId: string) => {
 export const useGetFollowingCount = (userId: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_FOLLOWING_COUNT, userId],
-    queryFn: () => getFollowingCount(userId),
+    queryFn: () => getFollowingCountServer(userId),
     enabled: !!userId,
   });
 };
 
 export const useIsFollowing = (userId: string) => {
+  const { data: session } = useSession();
   return useQuery({
     queryKey: [QUERY_KEYS.IS_FOLLOWING, userId],
-    queryFn: () => isFollowing(userId),
-    enabled: !!userId,
+    queryFn: () => {
+      const followerId = (session?.user as any)?.id || (session?.user as any)?._id || "";
+      return isFollowingServer(followerId, userId);
+    },
+    enabled: !!session?.user && !!userId,
   });
 };
 
@@ -787,9 +788,9 @@ export const useMarkNotificationAsRead = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (notificationId: string) => notificationService.markNotificationAsRead(notificationId),
-    onSuccess: () => {
-      // Invalidate notifications queries to update read status
+    mutationFn: (notificationId: string) =>
+      notificationService.markNotificationAsRead(notificationId),
+    onSuccess: (_, notificationId) => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_NOTIFICATIONS],
       });
@@ -824,7 +825,7 @@ export const useMarkAllNotificationsAsRead = () => {
 export const useGetComments = (postId: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_COMMENTS, postId],
-    queryFn: () => getPostComments(postId),
+    queryFn: () => getPostCommentsServer(postId),
     enabled: !!postId,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false, // Comments don't change as frequently
@@ -836,7 +837,7 @@ export const useCreateComment = () => {
 
   return useMutation({
     mutationFn: (comment: { content: string; postId: string; userId: string; parentId?: string }) =>
-      createComment(comment),
+      createCommentServer(comment.postId, comment.userId, comment.content, comment.parentId),
     onSuccess: async (data, variables) => {
       // Invalidate comments for the post
       queryClient.invalidateQueries({
@@ -857,16 +858,16 @@ export const useCreateComment = () => {
       // Create comment notification for post owner
       if (data && variables.userId) {
         try {
-          const post = await getPostById(variables.postId);
-          const user = await getCurrentUser();
+          const post = await getPostByIdServer(variables.postId);
+          const user = await getCurrentUserServer(variables.userId);
 
-          if (post && user && post.creator?.id !== variables.userId) {
+          if (post && user && (post.creator?._id || post.creator?.id) !== variables.userId) {
             await notificationService.createCommentNotification(
               variables.postId,
-              post.creator.id,
+              post.creator.id || post.creator._id,
               variables.userId,
               user.name || user.username || 'Unknown User',
-              user.image_url || '',
+              user.image || user.imageUrl || '',
               variables.content
             );
 
@@ -888,7 +889,7 @@ export const useUpdateComment = () => {
 
   return useMutation({
     mutationFn: ({ commentId, content }: { commentId: string; content: string }) =>
-      updateComment(commentId, content),
+      updateCommentServer(commentId, content),
     onSuccess: () => {
       // Find which post this comment belongs to and invalidate its comments
       queryClient.invalidateQueries({
@@ -902,7 +903,7 @@ export const useDeleteComment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (commentId: string) => deleteComment(commentId),
+    mutationFn: (commentId: string) => deleteCommentServer(commentId),
     onSuccess: () => {
       // Invalidate all comment queries since we don't know which post this belonged to
       queryClient.invalidateQueries({
@@ -914,6 +915,32 @@ export const useDeleteComment = () => {
       });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_FOLLOWING_FEED],
+      });
+    },
+  });
+};
+
+export const useLikeComment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ commentId, userId }: { commentId: string; userId: string }) =>
+      likeCommentServer(commentId, userId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_COMMENTS],
+      });
+    },
+  });
+};
+
+export const useUnlikeComment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ commentId, userId }: { commentId: string; userId: string }) =>
+      unlikeCommentServer(commentId, userId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_COMMENTS],
       });
     },
   });

@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import Loader from "@/components/shared/Loader";
 import { useGetAdminUsers, useAddAdminUser, useRemoveAdminUser } from "@/lib/react-query/queriesAndMutations";
-import { useUserContext } from "@/context/SupabaseAuthContext";
+import { useSession } from "next-auth/react";
 
 const AdminManagement = () => {
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [isAddingAdmin, setIsAddingAdmin] = useState(false);
   const { toast } = useToast();
-  const { user: currentUser } = useUserContext();
+  const { data: session } = useSession();
+  const currentUser = session?.user;
 
   const { data: adminUsers, isLoading: isLoadingAdmins } = useGetAdminUsers();
   const { mutate: addAdmin, isPending: isAddingAdminUser } = useAddAdminUser();
@@ -21,7 +22,7 @@ const AdminManagement = () => {
 
   const handleAddAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newAdminEmail.trim()) {
       toast({
         title: "Error",
@@ -64,7 +65,8 @@ const AdminManagement = () => {
 
   const handleRemoveAdmin = (userId: string, userEmail: string) => {
     // Check if trying to remove own admin privileges
-    if (currentUser?.id === userId) {
+    const currentUserId = currentUser?.id || (currentUser as any)?._id;
+    if (currentUserId === userId) {
       toast({
         title: "Action Not Allowed",
         description: "You cannot remove admin privileges from yourself.",
@@ -96,7 +98,7 @@ const AdminManagement = () => {
         onError: (error: any) => {
           console.error('Remove admin error:', error);
           toast({
-            title: "Error", 
+            title: "Error",
             description: error?.message || error?.error?.message || "Failed to remove admin user.",
             variant: "destructive",
           });
@@ -128,11 +130,11 @@ const AdminManagement = () => {
             className="shad-button_primary"
             disabled={isAddingAdminUser || isRemovingAdmin}
           >
-            <img 
-              src="/assets/icons/add-post.svg" 
-              alt="add" 
-              width={16} 
-              height={16} 
+            <img
+              src="/assets/icons/add-post.svg"
+              alt="add"
+              width={16}
+              height={16}
               className="invert-white"
             />
             Add Admin
@@ -200,12 +202,12 @@ const AdminManagement = () => {
           <h4 className="text-lg font-semibold text-light-1 mb-4">
             Current Admins ({adminUsers?.length || 0})
           </h4>
-          
-          {adminUsers && adminUsers.length > 0 ? (
+
+          {(adminUsers as any[]) && (adminUsers as any[]).length > 0 ? (
             <div className="grid gap-3">
-              {adminUsers.map((admin, index) => (
+              {(adminUsers as any[]).map((admin: any, index: number) => (
                 <motion.div
-                  key={admin.id}
+                  key={admin._id || admin.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2, delay: index * 0.1 }}
@@ -213,9 +215,9 @@ const AdminManagement = () => {
                 >
                   <div className="flex items-center gap-3">
                     <img
-                      src={admin.image_url || "/assets/icons/profile-placeholder.svg"}
+                      src={admin.imageUrl || admin.image_url || "/assets/icons/profile-placeholder.svg"}
                       alt={admin.name}
-                      className="w-10 h-10 rounded-full"
+                      className="w-10 h-10 rounded-full border border-primary-500/20"
                     />
                     <div>
                       <p className="font-semibold text-light-1">{admin.name}</p>
@@ -223,7 +225,7 @@ const AdminManagement = () => {
                       <p className="text-xs text-light-4">{admin.email}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     {/* Show if initial admin */}
                     {['admin@aura.com', 'maazajaz1234@gmail.com', 'test@admin.com'].includes(admin.email.toLowerCase()) && (
@@ -231,30 +233,30 @@ const AdminManagement = () => {
                         Super Admin
                       </span>
                     )}
-                    
+
                     {/* Remove button - disabled for initial admins and current user */}
                     <Button
                       onClick={() => handleRemoveAdmin(admin.id, admin.email)}
                       disabled={
-                        isRemovingAdmin || 
+                        isRemovingAdmin ||
                         ['admin@aura.com', 'maazajaz1234@gmail.com', 'test@admin.com'].includes(admin.email.toLowerCase()) ||
-                        currentUser?.id === admin.id
+                        (currentUser?.id || (currentUser as any)?._id) === (admin._id || admin.id)
                       }
                       className="text-red-500 hover:text-red-400 hover:bg-red-500/10 p-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       size="sm"
                       title={
                         currentUser?.id === admin.id ? "Cannot remove yourself" :
-                        ['admin@aura.com', 'maazajaz1234@gmail.com', 'test@admin.com'].includes(admin.email.toLowerCase()) ? "Cannot remove super admin" :
-                        "Remove admin privileges"
+                          ['admin@aura.com', 'maazajaz1234@gmail.com', 'test@admin.com'].includes(admin.email.toLowerCase()) ? "Cannot remove super admin" :
+                            "Remove admin privileges"
                       }
                     >
                       {isRemovingAdmin ? (
                         <Loader />
                       ) : (
-                        <img 
-                          src="/assets/icons/delete.svg" 
-                          alt="remove" 
-                          width={16} 
+                        <img
+                          src="/assets/icons/delete.svg"
+                          alt="remove"
+                          width={16}
                           height={16}
                           className="filter invert-[.25] sepia-100 saturate-[1000%] hue-rotate-[315deg] brightness-125"
                         />

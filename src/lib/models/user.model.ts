@@ -30,6 +30,11 @@ const UserSchema = new mongoose.Schema({
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     savedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
+    role: { type: String, default: 'user', enum: ['user', 'admin'] },
+    isActive: { type: Boolean, default: true },
+    isDeactivated: { type: Boolean, default: false },
+    lastActive: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: Date.now }
 });
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);

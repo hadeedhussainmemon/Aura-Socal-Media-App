@@ -38,10 +38,10 @@ const LeftSidebar = () => {
   });
 
   return (
-    <nav className="leftsidebar">
+    <nav className="leftsidebar glassmorphism shadow-glass">
       <div className="flex flex-col gap-11">
-        <Link href="/" className="flex gap-3 items-center">
-          <div className="w-32 h-auto text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-400 tracking-tighter">
+        <Link href="/" className="flex gap-3 items-center group">
+          <div className="w-32 h-auto text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-400 tracking-tighter group-hover:scale-105 transition-transform duration-300">
             Aura
           </div>
         </Link>
@@ -52,19 +52,21 @@ const LeftSidebar = () => {
           </div>
         ) : (
           <>
-            <Link href={`/profile/${(user as any).id || user.email}`} className="flex gap-3 items-center">
-              <img
-                src={user.image || "/assets/icons/profile-placeholder.svg"}
-                alt="profile"
-                className="h-14 w-14 rounded-full"
-              />
+            <Link href={`/profile/${(user as any).id || (user as any)._id || user.email}`} className="flex gap-3 items-center group">
+              <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-primary-500 to-purple-500 group-hover:scale-105 transition-transform duration-300">
+                <img
+                  src={user.image || "/assets/icons/profile-placeholder.svg"}
+                  alt="profile"
+                  className="h-14 w-14 rounded-full object-cover border-2 border-dark-2"
+                />
+              </div>
               <div className="flex flex-col">
-                <p className="body-bold">{user.name}</p>
+                <p className="body-bold group-hover:text-primary-500 transition-colors">{user.name}</p>
                 <p className="small-regular text-light-3">@{(user as any).username || user.name?.split(' ')[0]}</p>
               </div>
             </Link>
             {/* Notification Bell in Sidebar */}
-            <div className="mt-4 flex justify-center">
+            <div className="mt-4 flex justify-center backdrop-blur-md bg-white/5 rounded-full p-2">
               <NotificationBell />
             </div>
           </>
@@ -77,7 +79,7 @@ const LeftSidebar = () => {
             return (
               <li
                 key={link.label}
-                className={`leftsidebar-link group ${isActive && "bg-primary-500"
+                className={`leftsidebar-link group ${isActive && "bg-primary-500 shadow-glow"
                   }`}>
                 <Link
                   href={link.route}
@@ -85,7 +87,7 @@ const LeftSidebar = () => {
                   <img
                     src={link.imgURL}
                     alt={link.label}
-                    className={`group-hover:invert-white ${isActive && "invert-white"
+                    className={`group-hover:scale-110 transition-transform ${isActive && "invert-white"
                       }`}
                   />
                   {link.label}
@@ -97,9 +99,9 @@ const LeftSidebar = () => {
       </div>
 
       <Button
-        className="shad-button_ghost"
+        className="shad-button_ghost hover:bg-red-500/10 transition-colors"
         onClick={(e) => handleSignOut(e)}>
-        <img src="/assets/icons/logout.svg" alt="logout" />
+        <img src="/assets/icons/logout.svg" alt="logout" className="group-hover:scale-110 transition-transform" />
         <p className="small-medium lg:base-medium">Logout</p>
       </Button>
     </nav>

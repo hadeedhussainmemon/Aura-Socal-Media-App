@@ -32,7 +32,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const { name, bio, imageUrl, username } = await req.json();
+        const formData = await req.formData();
+        const name = formData.get('name') as string;
+        const bio = formData.get('bio') as string;
+        const username = formData.get('username') as string;
+        const privacy_setting = formData.get('privacy_setting') as string;
+        const file = formData.get('file') as File;
 
         await connectToDatabase();
 
@@ -47,9 +52,33 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             return NextResponse.json({ message: 'Unauthorized action' }, { status: 403 });
         }
 
+        // Upload image to Cloudinary if a new file is provided
+        let imageUrl = user.imageUrl;
+        if (file && typeof file !== 'string') {
+            const bytes = await file.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+
+            imageUrl = await new Promise((resolve, reject) => {
+                const cloudinary = require('cloudinary').v2;
+                cloudinary.config({
+                    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                    api_key: process.env.CLOUDINARY_API_KEY,
+                    api_secret: process.env.CLOUDINARY_API_SECRET,
+                });
+
+                cloudinary.uploader.upload_stream(
+                    { folder: "socialapp_profiles" },
+                    (error: any, result: any) => {
+                        if (error) reject(error);
+                        else resolve(result.secure_url);
+                    }
+                ).end(buffer);
+            });
+        }
+
         const updatedUser = await User.findByIdAndUpdate(
             params.id,
-            { name, bio, imageUrl, username },
+            { name, bio, imageUrl, username, privacy_setting },
             { new: true }
         ).select("-password");
 

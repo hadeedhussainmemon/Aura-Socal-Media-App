@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PostValidation } from "@/lib/validation";
 import { useToast } from "@/components/ui/use-toast";
-import { useUserContext } from "@/context/SupabaseAuthContext";
+import { useSession } from "next-auth/react";
 import FileUploader from "../shared/FileUploader";
 import Loader from "../shared/Loader";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
@@ -25,7 +25,8 @@ type PostFormNextJSProps = {
 const PostFormNextJS = ({ post, action }: PostFormNextJSProps) => {
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useUserContext();
+  const { data: session } = useSession();
+  const user = session?.user;
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
     defaultValues: {
@@ -87,10 +88,10 @@ const PostFormNextJS = ({ post, action }: PostFormNextJSProps) => {
       toast({ title: "User not authenticated" });
       return;
     }
-    
+
     try {
       const newPost = await createPost({
-        userId: user.id,
+        userId: user.id as string,
         caption: value.caption,
         file: value.file,
         location: value.location,

@@ -93,24 +93,19 @@ const UpdateProfile = () => {
     try {
       setIsLoadingUpdate(true);
 
-      // We will perform the file upload via the user edit endpoint internally
-      // Ensure the endpoint expects multipart/form-data or handles image via Cloudinary action natively.
-      // Since `ProfileValidation` returns `file` as File[], we prepare a fetch request.
+      const formData = new FormData();
+      formData.append('name', value.name);
+      formData.append('bio', value.bio || '');
+      formData.append('username', value.username);
+      formData.append('privacy_setting', value.privacy_setting || 'public');
+
+      if (value.file && value.file.length > 0) {
+        formData.append('file', value.file[0]);
+      }
 
       const res = await fetch(`/api/users/${userId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: value.name,
-          bio: value.bio,
-          username: value.username,
-          privacy_setting: value.privacy_setting,
-          // We'll pass the imageUrl from currentUser as a placeholder. 
-          // A real implementation would upload the image to Cloudinary here first.
-          imageUrl: currentUser.imageUrl || currentUser.image_url
-        })
+        body: formData,
       });
 
       if (!res.ok) throw new Error("Update user failed.");

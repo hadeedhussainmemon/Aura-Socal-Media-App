@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useCreateComment } from "@/lib/react-query/queriesAndMutations";
 import Image from "next/image";
 
 type CommentFormProps = {
@@ -26,37 +27,25 @@ const CommentForm = ({
   const { data: session } = useSession();
   const user = session?.user;
   const [comment, setComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutateAsync: createComment, isPending: isSubmitting } = useCreateComment();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!comment.trim() || !user || isSubmitting) return;
 
-    setIsSubmitting(true);
-
     try {
-      const res = await fetch("/api/comments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: comment.trim(),
-          postId,
-          userId: user.id || (user as any)._id,
-          parentId,
-        }),
+      await createComment({
+        content: comment.trim(),
+        postId,
+        userId: user.id || (user as any)._id,
+        parentId,
       });
 
-      if (res.ok) {
-        setComment("");
-        onCommentCreated?.();
-      }
+      setComment("");
+      onCommentCreated?.();
     } catch (error) {
       console.error("Error creating comment:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 

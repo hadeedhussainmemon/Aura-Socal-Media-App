@@ -13,7 +13,7 @@ import ShareModal from "./ShareModal";
 import AuthPromptModal from "./AuthPromptModal";
 
 type PostStatsProps = {
-  post: any; // Updated from Models.Document to any for Supabase compatibility
+  post: any; // MongoDB Post document
   userId: string;
   onCommentClick?: () => void;
   showComments?: boolean;
@@ -21,11 +21,11 @@ type PostStatsProps = {
 
 const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostStatsProps) => {
   const pathname = usePathname();
-  
-  // Handle Supabase post structure
+
+  // Handle MongoDB post structure
   const likesList = post.likes ? post.likes.map((like: any) => {
-    // Supabase structure: {user_id: string}
-    return like.user_id || like;
+    // MongoDB structure: likes is an array of IDs or populated objects
+    return like._id || like;
   }) : [];
 
   const [likes, setLikes] = useState<string[]>(likesList);
@@ -41,16 +41,17 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
 
   const { data: currentUser } = useGetCurrentUser(!!userId);
 
-  // Check if post is saved - updated for Supabase structure
+  // Check if post is saved
   useEffect(() => {
     const checkIfSaved = async () => {
       // Only check saved state if user is authenticated
-      if (userId && currentUser?.id && post?.id) {
+      if (userId && (currentUser?.id || (currentUser as any)?._id) && post?._id) {
         try {
-          // Check if this post is in the saves table for this user
-          const savedPosts = post.saves || [];
-          const isCurrentUserSaved = savedPosts.some((save: any) => 
-            save.user_id === currentUser.id
+          // Check if this post is in the saves array for this user
+          const savedUsers = post.saves || [];
+          const currentUserId = (currentUser as any)?.id || (currentUser as any)?._id;
+          const isCurrentUserSaved = savedUsers.some((id: string) =>
+            id.toString() === currentUserId.toString()
           );
           setIsSaved(isCurrentUserSaved);
         } catch (error) {
@@ -62,9 +63,9 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
         setIsSaved(false);
       }
     };
-    
+
     checkIfSaved();
-  }, [userId, currentUser, post.id, post.saves]);
+  }, [userId, currentUser, post._id, post.saves]);
 
   const handleLikePost = (
     e: React.MouseEvent<HTMLImageElement, MouseEvent>
@@ -107,7 +108,7 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
     }
 
     const postId = post.id || post.$id;
-    
+
     if (isSaved) {
       // If currently saved, unsave it
       setIsSaved(false);
@@ -126,9 +127,9 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
 
     // Check if Web Share API is supported (mobile)
     if (navigator.share) {
-      const postUrl = `${window.location.origin}/posts/${post.id}`;
+      const postUrl = `${window.location.origin}/posts/${post._id}`;
       const shareText = `Check out this post by ${post.creator?.name}: ${post.caption}`;
-      
+
       navigator.share({
         title: `Post by ${post.creator?.name}`,
         text: shareText,
@@ -152,11 +153,10 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
           {/* Like Button */}
           <div className="flex gap-2 items-center">
             <img
-              src={`${
-                checkIsLiked(likes, userId)
-                  ? "/assets/icons/liked.svg"
-                  : "/assets/icons/like.svg"
-              }`}
+              src={`${checkIsLiked(likes, userId)
+                ? "/assets/icons/liked.svg"
+                : "/assets/icons/like.svg"
+                }`}
               alt="like"
               width={20}
               height={20}

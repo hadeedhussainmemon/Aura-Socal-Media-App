@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import Loader from "@/components/shared/Loader";
-import { 
-  useGetAdminAllUsers, 
+import {
+  useGetAdminAllUsers,
   useToggleUserActivation,
   useGetAdminAllPosts,
   useAdminDeletePost
@@ -15,16 +15,18 @@ import {
 
 interface AdminUser {
   id: string;
+  _id?: string;
   name: string;
   username: string;
   email: string;
-  image_url: string;
+  imageUrl: string;
+  image_url?: string;
   bio: string;
-  is_admin: boolean;
-  is_active: boolean;
-  is_deactivated: boolean;
-  last_active: string;
-  created_at: string;
+  role: string;
+  isActive: boolean;
+  isDeactivated: boolean;
+  lastActive: string;
+  createdAt: string;
 }
 
 const AdminUserManagement = () => {
@@ -33,15 +35,15 @@ const AdminUserManagement = () => {
   const [selectedTab, setSelectedTab] = useState<"users" | "posts">("users");
   const { toast } = useToast();
 
-  const { 
-    data: usersData, 
+  const {
+    data: usersData,
     isLoading: isLoadingUsers
   } = useGetAdminAllUsers(currentPage, 10, searchTerm, {
     enabled: selectedTab === "users" // Only fetch when users tab is selected
   });
 
-  const { 
-    data: postsData, 
+  const {
+    data: postsData,
     isLoading: isLoadingPosts
   } = useGetAdminAllPosts(currentPage, 10, searchTerm, {
     enabled: selectedTab === "posts" // Only fetch when posts tab is selected
@@ -52,23 +54,23 @@ const AdminUserManagement = () => {
 
   // Helper function to get user status with smart logic
   const getUserStatus = (user: AdminUser) => {
-    if (user.is_deactivated) {
+    if (user.isDeactivated) {
       return { color: 'bg-red-500', label: 'Deactivated', textColor: 'text-red-400' };
     }
 
-    if (!user.last_active || user.last_active === null) {
+    if (!user.lastActive) {
       return { color: 'bg-gray-500', label: 'Never active', textColor: 'text-gray-400' };
     }
 
-    const lastActive = new Date(user.last_active);
+    const lastActive = new Date(user.lastActive);
     const now = new Date();
     const timeDiff = now.getTime() - lastActive.getTime();
     const minutesDiff = timeDiff / (1000 * 60);
 
-    // Online: Active within last 5 minutes AND is_active flag is true
-    if (user.is_active && minutesDiff <= 5) {
+    // Online: Active within last 5 minutes AND isActive flag is true
+    if (user.isActive && minutesDiff <= 5) {
       return { color: 'bg-green-500', label: 'Online', textColor: 'text-green-400' };
-    } 
+    }
     // Recently active: Within last 15 minutes
     else if (minutesDiff <= 15) {
       return { color: 'bg-green-400', label: 'Just left', textColor: 'text-green-300' };
@@ -77,12 +79,12 @@ const AdminUserManagement = () => {
     else if (minutesDiff <= 60) {
       const mins = Math.round(minutesDiff);
       return { color: 'bg-yellow-500', label: `${mins}m ago`, textColor: 'text-yellow-400' };
-    } 
+    }
     // Hours: 1 hour to 24 hours
     else if (minutesDiff <= 1440) { // 24 hours
       const hoursAgo = Math.floor(minutesDiff / 60);
       return { color: 'bg-orange-500', label: `${hoursAgo}h ago`, textColor: 'text-orange-400' };
-    } 
+    }
     // Days: More than 24 hours
     else if (minutesDiff <= 10080) { // 7 days
       const daysAgo = Math.floor(minutesDiff / 1440);
@@ -97,10 +99,10 @@ const AdminUserManagement = () => {
 
   const handleToggleActivation = (userId: string, userName: string, isCurrentlyDeactivated: boolean) => {
     const action = isCurrentlyDeactivated ? "activate" : "deactivate";
-    const confirmMessage = isCurrentlyDeactivated 
+    const confirmMessage = isCurrentlyDeactivated
       ? `Are you sure you want to activate ${userName}? They will be able to access their account again.`
       : `Are you sure you want to deactivate ${userName}? They will not be able to log in until reactivated.`;
-    
+
     if (confirm(confirmMessage)) {
       toggleActivation(userId, {
         onSuccess: (result) => {
@@ -170,7 +172,7 @@ const AdminUserManagement = () => {
         <div className="grid gap-4">
           {usersData.users.map((user: AdminUser, index) => (
             <motion.div
-              key={user.id}
+              key={user._id || user.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: index * 0.1 }}
@@ -179,14 +181,14 @@ const AdminUserManagement = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <img
-                    src={user.image_url || "/assets/icons/profile-placeholder.svg"}
+                    src={user.imageUrl || user.image_url || "/assets/icons/profile-placeholder.svg"}
                     alt={user.name}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover border border-primary-500/20"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-light-1">{user.name}</h3>
-                      {user.is_admin && (
+                      {user.role === 'admin' && (
                         <span className="px-2 py-1 text-xs bg-primary-500/20 text-primary-500 rounded-full border border-primary-500/30">
                           Admin
                         </span>
@@ -195,34 +197,34 @@ const AdminUserManagement = () => {
                     <p className="text-sm text-light-3">@{user.username}</p>
                     <p className="text-xs text-light-4">{user.email}</p>
                     <div className="flex gap-4 mt-2 text-xs text-light-3">
-                      <span>Joined: {new Date(user.created_at).toLocaleDateString()}</span>
+                      <span>Joined: {new Date(user.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
-                  {!user.is_admin && (
+                  {user.role !== 'admin' && (
                     <Button
-                      onClick={() => handleToggleActivation(user.id, user.name, user.is_deactivated)}
+                      onClick={() => handleToggleActivation(user._id || user.id, user.name, user.isDeactivated)}
                       disabled={isToggling}
-                      variant={user.is_deactivated ? "default" : "destructive"}
+                      variant={user.isDeactivated ? "default" : "destructive"}
                       size="sm"
                       className={
-                        user.is_deactivated 
-                          ? "text-green-500 hover:text-green-400 hover:bg-green-500/10 border-green-500/20" 
+                        user.isDeactivated
+                          ? "text-green-500 hover:text-green-400 hover:bg-green-500/10 border-green-500/20"
                           : "text-red-500 hover:text-red-400 hover:bg-red-500/10"
                       }
                     >
                       {isToggling ? (
                         <Loader />
-                      ) : user.is_deactivated ? (
+                      ) : user.isDeactivated ? (
                         "Activate"
                       ) : (
                         "Deactivate"
                       )}
                     </Button>
                   )}
-                  
+
                   {/* Show user status */}
                   <div className="flex items-center gap-1">
                     {(() => {
@@ -246,7 +248,7 @@ const AdminUserManagement = () => {
         {/* Pagination */}
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-dark-4">
           <div className="text-sm text-light-3">
-            Page {usersData.pagination.page} of {usersData.pagination.totalPages} 
+            Page {usersData.pagination.page} of {usersData.pagination.totalPages}
             ({usersData.pagination.total} total users)
           </div>
           <div className="flex gap-2">
@@ -301,43 +303,43 @@ const AdminUserManagement = () => {
         <div className="grid gap-4">
           {postsData.posts.map((post: any, index) => (
             <motion.div
-              key={post.id}
+              key={post._id || post.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: index * 0.1 }}
               className="p-4 bg-dark-3/30 rounded-lg border border-dark-4"
             >
               <div className="flex gap-4">
-                {post.image_url && (
+                {post.imageUrl || post.image_url && (
                   <img
-                    src={post.image_url}
+                    src={post.imageUrl || post.image_url}
                     alt="Post image"
                     className="w-20 h-20 rounded-lg object-cover"
                   />
                 )}
-                
+
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <img
-                      src={post.creator.image_url || "/assets/icons/profile-placeholder.svg"}
+                      src={post.creator.imageUrl || post.creator.image_url || "/assets/icons/profile-placeholder.svg"}
                       alt={post.creator.name}
                       className="w-6 h-6 rounded-full"
                     />
                     <span className="text-sm text-light-2">{post.creator.name}</span>
                     <span className="text-xs text-light-4">@{post.creator.username}</span>
                   </div>
-                  
+
                   <p className="text-light-1 mb-2 line-clamp-2">{post.caption}</p>
-                  
+
                   <div className="flex gap-4 text-xs text-light-3">
-                    <span>Posted: {new Date(post.created_at).toLocaleDateString()}</span>
+                    <span>Posted: {new Date(post.createdAt || post.created_at).toLocaleDateString()}</span>
                     {post.location && <span>📍 {post.location}</span>}
                   </div>
                 </div>
-                
+
                 <div className="flex items-center">
                   <Button
-                    onClick={() => handleDeletePost(post.id, post.caption)}
+                    onClick={() => handleDeletePost(post._id || post.id, post.caption)}
                     disabled={isDeletingPost}
                     variant="destructive"
                     size="sm"
@@ -346,10 +348,10 @@ const AdminUserManagement = () => {
                     {isDeletingPost ? (
                       <Loader />
                     ) : (
-                      <img 
-                        src="/assets/icons/delete.svg" 
-                        alt="delete" 
-                        width={16} 
+                      <img
+                        src="/assets/icons/delete.svg"
+                        alt="delete"
+                        width={16}
                         height={16}
                         className="filter invert-[.25] sepia-100 saturate-[1000%] hue-rotate-[315deg] brightness-125"
                       />
@@ -364,7 +366,7 @@ const AdminUserManagement = () => {
         {/* Pagination */}
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-dark-4">
           <div className="text-sm text-light-3">
-            Page {postsData.pagination.page} of {postsData.pagination.totalPages} 
+            Page {postsData.pagination.page} of {postsData.pagination.totalPages}
             ({postsData.pagination.total} total posts)
           </div>
           <div className="flex gap-2">
@@ -401,7 +403,7 @@ const AdminUserManagement = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-light-1">Content Management</h3>
-          
+
           {/* Tab Switcher */}
           <div className="flex bg-dark-3/30 rounded-lg p-1">
             <Button
@@ -410,11 +412,10 @@ const AdminUserManagement = () => {
                 setCurrentPage(1);
                 setSearchTerm("");
               }}
-              className={`px-4 py-2 text-sm rounded-md transition-all ${
-                selectedTab === "users"
-                  ? "bg-primary-500 text-white"
-                  : "text-light-3 hover:text-light-1 bg-transparent"
-              }`}
+              className={`px-4 py-2 text-sm rounded-md transition-all ${selectedTab === "users"
+                ? "bg-primary-500 text-white"
+                : "text-light-3 hover:text-light-1 bg-transparent"
+                }`}
             >
               Users
             </Button>
@@ -424,11 +425,10 @@ const AdminUserManagement = () => {
                 setCurrentPage(1);
                 setSearchTerm("");
               }}
-              className={`px-4 py-2 text-sm rounded-md transition-all ${
-                selectedTab === "posts"
-                  ? "bg-primary-500 text-white"
-                  : "text-light-3 hover:text-light-1 bg-transparent"
-              }`}
+              className={`px-4 py-2 text-sm rounded-md transition-all ${selectedTab === "posts"
+                ? "bg-primary-500 text-white"
+                : "text-light-3 hover:text-light-1 bg-transparent"
+                }`}
             >
               Posts
             </Button>

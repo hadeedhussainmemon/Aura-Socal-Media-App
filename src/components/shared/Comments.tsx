@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import CommentForm from "@/components/forms/CommentForm";
 import CommentItem, { CommentType } from "@/components/shared/CommentItem";
 import Loader from "@/components/shared/Loader";
+import { useGetComments } from "@/lib/react-query/queriesAndMutations";
 
 type CommentsProps = {
   postId: string;
@@ -14,38 +14,16 @@ type CommentsProps = {
 const Comments = ({ postId, className = "" }: CommentsProps) => {
   const { data: session } = useSession();
   const user = session?.user;
-  const [comments, setComments] = useState<CommentType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [commentsCount, setCommentsCount] = useState(0);
 
-  const fetchComments = async () => {
-    try {
-      setIsLoading(true);
-      const res = await fetch(`/api/posts/${postId}/comments`);
-      if (res.ok) {
-        const fetchedComments = await res.json();
-        setComments(fetchedComments);
-        setCommentsCount(fetchedComments.length);
-      }
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (postId) {
-      fetchComments();
-    }
-  }, [postId]);
+  const { data: comments = [], isLoading } = useGetComments(postId);
+  const commentsCount = comments.length;
 
   const handleCommentCreated = () => {
-    fetchComments(); // Refresh comments after new comment
+    // React query handles invalidation automatically on success
   };
 
   const handleCommentUpdated = () => {
-    fetchComments(); // Refresh comments after update/delete
+    // React query handles invalidation automatically on success
   };
 
   return (
@@ -78,7 +56,7 @@ const Comments = ({ postId, className = "" }: CommentsProps) => {
         </div>
       ) : comments.length > 0 ? (
         <div className="space-y-4">
-          {comments.map((comment) => (
+          {comments.map((comment: CommentType) => (
             <CommentItem
               key={comment.id || comment._id}
               comment={comment}

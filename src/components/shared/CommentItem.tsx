@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { multiFormatDateString } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import CommentForm from "@/components/forms/CommentForm";
+import { useLikeComment, useUnlikeComment, useDeleteComment } from "@/lib/react-query/queriesAndMutations";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -16,13 +17,17 @@ export type CommentType = {
   post_id: string;
   parent_id?: string | null;
   created_at: string;
+  createdAt?: string;
   is_edited: boolean;
   user: {
     id: string;
+    _id?: string;
     name: string;
     username: string;
-    image_url: string;
+    image_url?: string;
+    imageUrl?: string;
   };
+  likes?: string[];
   _count?: {
     likes: number;
     replies: number;
@@ -41,71 +46,55 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
   const user = session?.user;
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(comment._count?.likes || 0);
-  const [isLiking, setIsLiking] = useState(false);
+  const [localIsLiking, setLocalIsLiking] = useState(false);
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [localIsDeleting, setLocalIsDeleting] = useState(false);
 
   // Check if user has liked this comment
   useEffect(() => {
-    const checkLikeStatus = async () => {
-      if (user && (comment.id || comment._id)) {
-        try {
-          const commentId = comment.id || comment._id;
-          const res = await fetch(`/api/comments/${commentId}/like-status?userId=${user.id || (user as any)._id}`);
-          if (res.ok) {
-            const data = await res.json();
-            setIsLiked(data.isLiked);
-          }
-        } catch (error) {
-          console.error("Failed to check like status:", error);
-        }
-      }
-    };
-    checkLikeStatus();
-  }, [user, comment.id, comment._id]);
+    if (user && comment.likes) {
+      const currentUserId = user.id || (user as any)._id;
+      setIsLiked(comment.likes.includes(currentUserId));
+    }
+  }, [user, comment.likes]);
+
+  const { mutateAsync: likeCommentMutate, isPending: isLiking } = useLikeComment();
+  const { mutateAsync: unlikeCommentMutate, isPending: isUnliking } = useUnlikeComment();
+  const { mutateAsync: deleteCommentMutate, isPending: isDeleting } = useDeleteComment();
 
   const handleLike = async () => {
-    if (!user || isLiking) return;
+    if (!user || isLiking || isUnliking) return;
 
-    setIsLiking(true);
-    const commentId = comment.id || comment._id;
+    const commentId = comment._id || comment.id;
     try {
-      const res = await fetch(`/api/comments/${commentId}/like`, {
-        method: isLiked ? 'DELETE' : 'POST',
-      });
-      if (res.ok) {
-        if (isLiked) {
-          setIsLiked(false);
-          setLikesCount(prev => Math.max(0, prev - 1));
-        } else {
-          setIsLiked(true);
-          setLikesCount(prev => prev + 1);
-        }
+      if (isLiked) {
+        await unlikeCommentMutate({ commentId, userId: user.id || (user as any)._id });
+        setIsLiked(false);
+        setLikesCount(prev => Math.max(0, prev - 1));
+      } else {
+        await likeCommentMutate({ commentId, userId: user.id || (user as any)._id });
+        setIsLiked(true);
+        setLikesCount(prev => prev + 1);
       }
     } catch (error) {
       console.error("Error toggling comment like:", error);
-    } finally {
-      setIsLiking(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!user || user.id !== comment.user_id || isDeleting) return;
+    const userId = user?.id || (user as any)?._id;
+    const authorId = comment.user?._id || (comment.user as any)?.id || comment.user_id;
+
+    if (!user || userId !== authorId || isDeleting) return;
 
     if (!confirm("Are you sure you want to delete this comment?")) return;
 
-    setIsDeleting(true);
     try {
-      const commentId = comment.id || comment._id;
-      const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
-      if (res.ok) {
-        onCommentUpdated?.();
-      }
+      await deleteCommentMutate(comment._id || comment.id);
+      onCommentUpdated?.();
     } catch (error) {
       console.error("Error deleting comment:", error);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -122,13 +111,13 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
   return (
     <div className={`flex gap-3 ${level > 0 ? 'ml-8' : ''}`}>
       {/* User Avatar */}
-      <Link href={`/profile/${comment.user.id}`}>
+      <Link href={`/profile/${comment.user?._id || comment.user.id}`}>
         <Image
-          src={comment.user.image_url || "/assets/icons/profile-placeholder.svg"}
-          alt={comment.user.name}
+          src={comment.user?.imageUrl || comment.user?.image_url || "/assets/icons/profile-placeholder.svg"}
+          alt={comment.user?.name || "User"}
           width={level > 0 ? 28 : 32}
           height={level > 0 ? 28 : 32}
-          className="rounded-full"
+          className="rounded-full border border-primary-500/10"
         />
       </Link>
 
@@ -137,13 +126,13 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
         <div className="bg-dark-4 rounded-lg px-3 py-2">
           <div className="flex items-center gap-2 mb-1">
             <Link
-              href={`/profile/${comment.user.id}`}
-              className="text-sm font-medium text-light-1 hover:text-primary-500"
+              href={`/profile/${comment.user?._id || comment.user.id}`}
+              className="text-sm font-semibold text-light-1 hover:text-primary-500 transition-colors"
             >
-              {comment.user.name}
+              {comment.user?.name}
             </Link>
             <span className="text-xs text-light-4">
-              @{comment.user.username}
+              @{comment.user?.username}
             </span>
             {comment.is_edited && (
               <span className="text-xs text-light-4">• edited</span>
@@ -158,7 +147,7 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
         {/* Comment Actions */}
         <div className="flex items-center gap-4 mt-2 mb-2">
           <span className="text-xs text-light-4">
-            {multiFormatDateString(comment.created_at)}
+            {multiFormatDateString(comment.createdAt || comment.created_at)}
           </span>
 
           {likesCount > 0 && (

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useUserContext } from "@/context/SupabaseAuthContext";
+import { useSession } from "next-auth/react";
 
 const SharedPostTopbar = () => {
-  const { user } = useUserContext();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   return (
     <section className="topbar">
@@ -20,7 +21,7 @@ const SharedPostTopbar = () => {
         <div className="flex gap-4">
           <Link href="/sign-in" className="flex-center gap-3">
             <img
-              src={user?.image_url || "/assets/icons/profile-placeholder.svg"}
+              src={user?.image || (user as any)?.imageUrl || "/assets/icons/profile-placeholder.svg"}
               alt="profile"
               className="h-8 w-8 rounded-full cursor-pointer"
             />

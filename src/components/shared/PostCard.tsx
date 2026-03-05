@@ -11,7 +11,7 @@ import QuickComment from "./QuickComment";
 import { POST_CATEGORIES } from "@/constants";
 
 type PostCardProps = {
-  post: any; // TODO: Add proper type from Supabase
+  post: any; // MongoDB Post document
 };
 
 const PostCard = ({ post }: PostCardProps) => {
@@ -39,11 +39,11 @@ const PostCard = ({ post }: PostCardProps) => {
           <Link href={`/profile/${post.creator.id}`}>
             <img
               src={
-                post.creator?.image_url ||
+                post.creator?.imageUrl ||
                 "/assets/icons/profile-placeholder.svg"
               }
               alt="creator"
-              className="w-12 lg:h-12 rounded-full"
+              className="w-12 h-12 rounded-full object-cover border-2 border-primary-500/20"
             />
           </Link>
 
@@ -53,7 +53,7 @@ const PostCard = ({ post }: PostCardProps) => {
             </p>
             <div className="flex-center gap-2 text-light-3">
               <p className="subtle-semibold lg:small-regular ">
-                {multiFormatDateString(post.created_at)}
+                {multiFormatDateString(post.createdAt)}
               </p>
               •
               <p className="subtle-semibold lg:small-regular">
@@ -72,47 +72,51 @@ const PostCard = ({ post }: PostCardProps) => {
         </div>
 
         <div className={`flex gap-2 ${user?.id !== post.creator.id && "hidden"}`}>
-          <Link href={`/update-post/${post.id}`}>
+          <Link href={`/update-post/${post._id}`}>
             <img
               src={"/assets/icons/edit.svg"}
               alt="edit"
               width={20}
               height={20}
+              className="hover:scale-110 transition-transform"
             />
           </Link>
 
           <Button
             onClick={handleDeletePost}
             variant="ghost"
-            className="p-0 h-auto"
+            className="p-0 h-auto hover:bg-transparent"
           >
             <img
               src={"/assets/icons/delete.svg"}
               alt="delete"
               width={20}
               height={20}
+              className="hover:scale-110 transition-transform"
             />
           </Button>
         </div>
       </div>
 
-      <Link href={`/posts/${post.id}`}>
+      <Link href={`/posts/${post._id}`}>
         <div className="small-medium lg:base-medium py-5">
           <p>{post.caption}</p>
-          <ul className="flex gap-1 mt-2">
-            {post.tags.map((tag: string, index: string) => (
-              <li key={`${tag}${index}`} className="text-light-3 small-regular">
+          <ul className="flex flex-wrap gap-1 mt-2">
+            {post.tags.map((tag: string, index: number) => (
+              <li key={`${tag}${index}`} className="text-primary-500 small-regular hover:underline cursor-pointer">
                 #{tag}
               </li>
             ))}
           </ul>
         </div>
 
-        <img
-          src={post.image_url || "/assets/icons/profile-placeholder.svg"}
-          alt="post image"
-          className="post-card_img"
-        />
+        <div className="overflow-hidden rounded-[24px]">
+          <img
+            src={post.imageUrl || "/assets/icons/profile-placeholder.svg"}
+            alt="post image"
+            className="post-card_img hover:scale-105 transition-transform duration-500"
+          />
+        </div>
       </Link>
 
       <PostStats
@@ -123,9 +127,9 @@ const PostCard = ({ post }: PostCardProps) => {
 
       {/* Comments Section */}
       {showComments && (
-        <div className="border-t border-dark-4 pt-2">
+        <div className="border-t border-dark-4 pt-4 mt-2">
           <QuickComment
-            postId={post.id}
+            postId={post._id}
             onCommentAdded={() => {
               // Optionally refresh post data or show success message
               console.log('Comment added successfully!');

@@ -14,22 +14,24 @@ const Topbar = () => {
   const isAdmin = false;
 
   return (
-    <section className="topbar">
+    <section className="topbar glassmorphism shadow-glass">
       <div className="flex-between py-4 px-5">
-        <Link href="/" className="flex gap-3 items-center">
-          <div className="w-16 h-auto text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-400 tracking-tighter">
+        <Link href="/" className="flex gap-3 items-center group">
+          <div className="w-16 h-auto text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-400 tracking-tighter group-hover:scale-105 transition-transform duration-300">
             Aura
           </div>
         </Link>
 
         <div className="flex gap-2 items-center">
-          <NotificationBell />
+          <div className="backdrop-blur-md bg-white/5 rounded-full p-2">
+            <NotificationBell />
+          </div>
 
           {/* Admin Button - only show if user has admin access */}
           {isAdmin && (
             <Link href="/admin">
               <Button
-                className="shad-button_ghost p-2"
+                className="shad-button_ghost p-2 hover:bg-primary-500/10 transition-colors"
                 title="Admin Dashboard"
               >
                 <img
@@ -37,22 +39,25 @@ const Topbar = () => {
                   alt="admin"
                   width={18}
                   height={18}
+                  className="hover:scale-110 transition-transform"
                 />
               </Button>
             </Link>
           )}
 
           <Button
-            className="shad-button_ghost p-2"
+            className="shad-button_ghost p-2 hover:bg-red-500/10 transition-colors"
             onClick={() => signOut({ callbackUrl: '/sign-in' })}>
-            <img src="/assets/icons/logout.svg" alt="logout" width={18} height={18} />
+            <img src="/assets/icons/logout.svg" alt="logout" width={18} height={18} className="hover:scale-110 transition-transform" />
           </Button>
-          <Link href={`/profile/${user?.id}`} className="flex-center">
-            <img
-              src={user?.image || "/assets/icons/profile-placeholder.svg"}
-              alt="profile"
-              className="h-7 w-7 rounded-full"
-            />
+          <Link href={`/profile/${user?.id}`} className="flex-center group">
+            <div className="p-0.5 rounded-full bg-gradient-to-tr from-primary-500 to-purple-500 group-hover:scale-105 transition-transform duration-300">
+              <img
+                src={user?.image || "/assets/icons/profile-placeholder.svg"}
+                alt="profile"
+                className="h-7 w-7 rounded-full border-2 border-dark-2"
+              />
+            </div>
           </Link>
         </div>
       </div>
