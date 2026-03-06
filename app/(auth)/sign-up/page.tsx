@@ -27,6 +27,7 @@ const SignupForm = () => {
       username: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
@@ -39,7 +40,12 @@ const SignupForm = () => {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user),
+        body: JSON.stringify({
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          password: user.password,
+        }),
       });
 
       const data = await response.json();
@@ -137,6 +143,20 @@ const SignupForm = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="shad-form_label">Password</FormLabel>
+                <FormControl>
+                  <Input type="password" className="shad-input" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="shad-form_label">Confirm Password</FormLabel>
                 <FormControl>
                   <Input type="password" className="shad-input" {...field} />
                 </FormControl>
