@@ -6,18 +6,23 @@ import Otp from "@/lib/models/otp.model";
 
 export async function POST(req: Request) {
     try {
-        const { name, username, email, password, otp } = await req.json();
+        // Temporarily disabling OTP requirement until domain is purchased
+        // const { name, username, email, password, otp } = await req.json();
+        const { name, username, email, password } = await req.json();
 
-        if (!name || !username || !email || !password || !otp) {
+        // if (!name || !username || !email || !password || !otp) {
+        if (!name || !username || !email || !password) {
             return NextResponse.json(
-                { message: "Missing required fields, including OTP" },
+                // { message: "Missing required fields, including OTP" },
+                { message: "Missing required fields" },
                 { status: 400 }
             );
         }
 
         await connectToDatabase();
 
-        // 1. Verify OTP
+        // 1. Verify OTP - TEMPORARILY DISABLED
+        /*
         const existingOtpRecords = await Otp.find({ email }).sort({ createdAt: -1 });
         if (existingOtpRecords.length === 0) {
             return NextResponse.json(
@@ -35,6 +40,7 @@ export async function POST(req: Request) {
                 { status: 400 }
             );
         }
+        */
 
         // 2. Check for existing users
         const existingEmail = await User.findOne({ email });
@@ -63,7 +69,7 @@ export async function POST(req: Request) {
         });
 
         // 4. Delete the used OTP record
-        await Otp.deleteMany({ email });
+        // await Otp.deleteMany({ email });
 
         return NextResponse.json(
             { message: "User created successfully", user: newUser },

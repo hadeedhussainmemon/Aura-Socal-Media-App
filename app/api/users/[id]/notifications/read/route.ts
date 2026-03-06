@@ -3,8 +3,7 @@ import { connectToDatabase } from "@/lib/mongoose";
 import Notification from "@/lib/models/notification.model";
 
 export async function POST(
-    req: Request,
-    { params }: { params: { id: string } }
+    req: Request
 ) {
     try {
         const body = await req.json();
@@ -22,7 +21,7 @@ export async function POST(
         );
 
         return NextResponse.json({ message: "Notifications marked as read" });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[USER_NOTIFICATIONS_READ_POST]", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }

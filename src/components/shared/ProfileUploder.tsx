@@ -38,8 +38,9 @@ const ProfileUploader = ({ fieldChange, mediaUrl }: ProfileUploaderProps) => {
         setFileUrl(convertFileToUrl(acceptedFiles[0]));
       }
     },
-    [fieldChange, setFileUrl]
+    [fieldChange]
   );
+
 
   const onDropRejected = useCallback(
     (fileRejections: FileRejection[]) => {

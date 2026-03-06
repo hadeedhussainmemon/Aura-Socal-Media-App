@@ -144,56 +144,48 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
     }
   };
 
-  const containerStyles = pathname?.startsWith("/profile")
-    ? "w-full"
-    : "";
-
   return (
     <>
       <div
-        className={`flex justify-between items-center z-20 ${containerStyles}`}>
-        <div className="flex gap-4 mr-5">
+        className={`flex justify-between items-center z-20 w-full mb-1`}>
+        <div className="flex gap-4">
           {/* Like Button */}
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-1 items-center">
             <Image
               src={`${checkIsLiked(likes, userId)
                 ? "/assets/icons/liked.svg"
                 : "/assets/icons/like.svg"
                 }`}
               alt="like"
-              width={20}
-              height={20}
+              width={24}
+              height={24}
               onClick={(e) => handleLikePost(e as unknown as React.MouseEvent<HTMLImageElement, MouseEvent>)}
-              className="cursor-pointer"
+              className="cursor-pointer hover:opacity-70 transition-opacity"
             />
-            <p className="small-medium lg:base-medium">{likes.length}</p>
           </div>
 
           {/* Comments Button */}
           {showComments && (
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-1 items-center">
               <Image
                 src="/assets/icons/chat.svg"
                 alt="comment"
-                width={20}
-                height={20}
-                className="cursor-pointer"
+                width={24}
+                height={24}
+                className="cursor-pointer hover:opacity-70 transition-opacity"
                 onClick={onCommentClick}
               />
-              <p className="small-medium lg:base-medium">
-                {post._count?.comments || 0}
-              </p>
             </div>
           )}
 
           {/* Share Button */}
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-1 items-center">
             <Image
               src="/assets/icons/share.svg"
               alt="share"
-              width={20}
-              height={20}
-              className="cursor-pointer"
+              width={24}
+              height={24}
+              className="cursor-pointer hover:opacity-70 transition-opacity"
               onClick={(e) => handleSharePost(e as unknown as React.MouseEvent<HTMLImageElement, MouseEvent>)}
             />
           </div>
@@ -203,13 +195,20 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
           <Image
             src={isSaved ? "/assets/icons/saved.svg" : "/assets/icons/save.svg"}
             alt="save"
-            width={20}
-            height={20}
-            className="cursor-pointer"
+            width={24}
+            height={24}
+            className="cursor-pointer hover:opacity-70 transition-opacity"
             onClick={(e) => handleSavePost(e as unknown as React.MouseEvent<HTMLImageElement, MouseEvent>)}
           />
         </div>
       </div>
+
+      {/* Like Count positioned below like Instagram */}
+      {likes.length > 0 && (
+        <div className="w-full mt-2">
+          <p className="text-sm font-semibold text-light-1">{likes.length} {likes.length === 1 ? 'like' : 'likes'}</p>
+        </div>
+      )}
 
       {/* Share Modal */}
       <ShareModal

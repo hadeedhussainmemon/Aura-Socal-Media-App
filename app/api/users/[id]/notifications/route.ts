@@ -15,7 +15,7 @@ export async function GET(
             .limit(50);
 
         return NextResponse.json(notifications);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[USER_NOTIFICATIONS_GET]", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }

@@ -21,7 +21,7 @@ export async function PUT(
         }
 
         return NextResponse.json(updatedNotification);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[NOTIFICATION_READ_PUT]", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }

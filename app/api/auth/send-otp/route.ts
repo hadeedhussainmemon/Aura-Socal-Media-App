@@ -3,42 +3,42 @@ import { connectToDatabase } from "@/lib/mongoose";
 import Otp from "@/lib/models/otp.model";
 import User from "@/lib/models/user.model";
 import { sendEmail } from "@/lib/utils/sendEmail";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
-    try {
-        const { email } = await req.json();
+  try {
+    const { email } = await req.json();
 
-        if (!email) {
-            return NextResponse.json({ message: "Email is required" }, { status: 400 });
-        }
+    if (!email) {
+      return NextResponse.json({ message: "Email is required" }, { status: 400 });
+    }
 
-        await connectToDatabase();
+    await connectToDatabase();
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return NextResponse.json({ message: "User already exists with this email" }, { status: 400 });
-        }
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return NextResponse.json({ message: "User already exists with this email" }, { status: 400 });
+    }
 
-        // Generate a 6-digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Hash the OTP before saving to DB
-        const salt = await bcrypt.genSalt(10);
-        const hashedOtp = await bcrypt.hash(otp, salt);
+    // Hash the OTP before saving to DB
+    const salt = await bcrypt.genSalt(10);
+    const hashedOtp = await bcrypt.hash(otp, salt);
 
-        // Save or update the OTP in the database
-        // Delete any existing OTP for this email
-        await Otp.deleteMany({ email });
+    // Save or update the OTP in the database
+    // Delete any existing OTP for this email
+    await Otp.deleteMany({ email });
 
-        await Otp.create({
-            email,
-            otp: hashedOtp,
-        });
+    await Otp.create({
+      email,
+      otp: hashedOtp,
+    });
 
-        // Send the OTP via Email
-        const message = `
+    // Send the OTP via Email
+    const message = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden;">
         <div style="background-color: #7928CA; padding: 20px; text-align: center;">
           <h1 style="color: white; margin: 0;">Aura</h1>
@@ -56,15 +56,15 @@ export async function POST(req: Request) {
       </div>
     `;
 
-        await sendEmail({
-            email,
-            subject: "Aura - Verification Code",
-            message,
-        });
+    await sendEmail({
+      email,
+      subject: "Aura - Verification Code",
+      message,
+    });
 
-        return NextResponse.json({ message: "OTP sent successfully" }, { status: 200 });
-    } catch (error: any) {
-        console.error("Error sending OTP:", error);
-        return NextResponse.json({ message: "Failed to send OTP", error: error.message }, { status: 500 });
-    }
+    return NextResponse.json({ message: "OTP sent successfully" }, { status: 200 });
+  } catch (error: any) {
+    console.error("Error sending OTP:", error);
+    return NextResponse.json({ message: "Failed to send OTP", error: error.message }, { status: 500 });
+  }
 }

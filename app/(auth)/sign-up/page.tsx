@@ -54,6 +54,8 @@ const SignupForm = () => {
     setIsPending(true);
 
     try {
+      // TEMPORARILY DISABLED OTP SENDING
+      /*
       const response = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -71,8 +73,44 @@ const SignupForm = () => {
       setUserData(data);
       setStep(2);
       setIsPending(false);
-    } catch (error) {
-      console.error("OTP send error:", error);
+      */
+
+      // INSTANT REGISTRATION INSTEAD (Bypassing OTP)
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name,
+          username: data.username,
+          email: data.email,
+          password: data.password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setSignUpError(result.message || "Registration failed.");
+        setIsPending(false);
+        return;
+      }
+
+      // Automatically log them in
+      const res = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+      });
+
+      if (res?.error) {
+        setSignUpError("Registered! But auto-login failed. Please log in manually.");
+        setIsPending(false);
+        return;
+      }
+
+      router.push("/");
+    } catch (error: unknown) {
+      console.error('Registration error:', error);
       setSignUpError("An unexpected error occurred. Please try again.");
       setIsPending(false);
     }

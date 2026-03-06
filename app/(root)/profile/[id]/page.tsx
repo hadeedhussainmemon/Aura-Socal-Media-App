@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import LikedPosts from "./LikedPosts";
 import PrivacySettings from "@/components/shared/PrivacySettings";
 import { PRIVACY_SETTINGS } from "@/constants";
 
-import { getUserByIdServer } from "@/lib/actions/user.actions";
+import { getUserByUsernameServer } from "@/lib/actions/user.actions";
 import { getUserPostsServer } from "@/lib/actions/post.actions";
 
 import { IPost, IUser } from "@/types";
@@ -36,11 +37,13 @@ type ProfileWrapperProps = {
 
 const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
   const { id: username } = React.use(params);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const user = session?.user;
+  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<'posts' | 'liked'>('posts');
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
 
   const [currentUser, setCurrentUser] = useState<IUser | null>(null);
   const [userPosts, setUserPosts] = useState<IPost[]>([]);
@@ -83,6 +86,30 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
     }
     fetchUserData();
   }, [username, user?.id]);
+
+  // Handle redirect for unauthenticated users
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      setRedirectCountdown(5);
+    } else {
+      setRedirectCountdown(null);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (redirectCountdown === null) return;
+
+    if (redirectCountdown === 0) {
+      router.push("/sign-in");
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setRedirectCountdown((prev) => (prev !== null && prev > 0 ? prev - 1 : prev));
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [redirectCountdown, router]);
 
 
   const handleFollowToggle = async () => {
@@ -220,7 +247,13 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
   );
 
   return (
-    <div className="profile-container pb-20 md:pb-8">
+    <div className="profile-container pb-20 md:pb-8 relative">
+      {/* Redirect Banner */}
+      {redirectCountdown !== null && (
+        <div className="fixed top-0 left-0 w-full bg-gradient-to-r from-primary-500 to-purple-600 text-white text-center py-3 z-[100] font-medium shadow-lg backdrop-blur-md bg-opacity-90 animate-in slide-in-from-top duration-500">
+          Sign in to interact with @{currentUser.username}. Redirecting to login in {redirectCountdown}s...
+        </div>
+      )}
       <div className="flex flex-col w-full max-w-5xl glass-morphism p-8 rounded-3xl border border-white/5 shadow-glass">
         <div className="flex flex-row items-center gap-4 sm:gap-6 w-full">
           <Image

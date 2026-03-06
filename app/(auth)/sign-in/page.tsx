@@ -150,7 +150,7 @@ const SigninForm = () => {
 
       <div className="w-full glass-morphism rounded-[3px] border border-white/10 shadow-glass py-5 mt-4 text-center">
         <p className="text-sm text-light-1">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link
             href="/sign-up"
             className="text-primary-500 font-semibold hover:text-white transition-colors">

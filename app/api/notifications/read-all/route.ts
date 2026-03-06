@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         await Notification.updateMany({ userId, read: false }, { read: true });
 
         return NextResponse.json({ message: "All notifications marked as read" });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[NOTIFICATIONS_READ_ALL_POST]", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }

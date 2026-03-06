@@ -20,7 +20,7 @@ export async function GET(req: Request) {
             .populate("fromUserId", "name username image_url");
 
         return NextResponse.json(notifications);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[NOTIFICATIONS_GET]", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(newNotification, { status: 201 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("[NOTIFICATIONS_POST]", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
