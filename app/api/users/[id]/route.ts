@@ -4,9 +4,9 @@ import User from '@/lib/models/user.model';
 import { auth } from '@/auth';
 
 // GET User by ID
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = params;
+        const { id } = await params;
 
         await connectToDatabase();
 
@@ -24,8 +24,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 }
 
 // Edit User
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const session = await auth();
 
         if (!session || !session.user) {
@@ -41,7 +42,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
         await connectToDatabase();
 
-        const user = await User.findById(params.id);
+        const user = await User.findById(id);
 
         if (!user) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
@@ -79,7 +80,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         }
 
         const updatedUser = await User.findByIdAndUpdate(
-            params.id,
+            id,
             { name, bio, imageUrl, username, privacy_setting },
             { new: true }
         ).select("-password");

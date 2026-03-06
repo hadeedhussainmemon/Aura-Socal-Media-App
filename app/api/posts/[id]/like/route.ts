@@ -5,15 +5,15 @@ import Post from '@/lib/models/post.model';
 import { auth } from '@/auth';
 
 // Toggle Like
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: postId } = await params;
         const session = await auth();
 
         if (!session || !session.user) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id: postId } = params;
         const userId = session.user.id;
 
         await connectToDatabase();

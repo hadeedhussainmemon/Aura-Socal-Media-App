@@ -5,11 +5,12 @@ import User from '@/lib/models/user.model';
 import { auth } from '@/auth';
 
 // GET Comments for a Post
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         await connectToDatabase();
 
-        const comments = await Comment.find({ post: params.id })
+        const comments = await Comment.find({ post: id })
             .populate({
                 path: 'user',
                 model: User,
@@ -25,8 +26,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // CREATE a Comment
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         const session = await auth();
 
         if (!session || !session.user) {
@@ -42,7 +44,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         await connectToDatabase();
 
         const newComment = await Comment.create({
-            post: params.id,
+            post: id,
             user: session.user.id,
             content,
         });

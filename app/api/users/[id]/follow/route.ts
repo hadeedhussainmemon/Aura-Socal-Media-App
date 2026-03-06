@@ -4,8 +4,9 @@ import User from '@/lib/models/user.model';
 import { auth } from '@/auth';
 
 // Toggle Follow/Unfollow User
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id: targetUserId } = await params;
         const session = await auth();
 
         if (!session || !session.user) {
@@ -13,7 +14,6 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
         }
 
         const currentUserId = session.user.id;
-        const targetUserId = params.id;
 
         if (currentUserId === targetUserId) {
             return NextResponse.json({ message: 'You cannot follow yourself' }, { status: 400 });

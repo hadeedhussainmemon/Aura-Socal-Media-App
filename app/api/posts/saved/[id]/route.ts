@@ -5,11 +5,12 @@ import Post from '@/lib/models/post.model';
 import User from '@/lib/models/user.model';
 
 // GET Saved Posts for a User
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
+        const { id } = await params;
         await connectToDatabase();
 
-        const savedPosts = await Save.find({ user: params.id })
+        const savedPosts = await Save.find({ user: id })
             .populate({
                 path: 'post',
                 model: Post,
