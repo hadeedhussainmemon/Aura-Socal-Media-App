@@ -52,8 +52,10 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
   // Check if user has liked this comment
   useEffect(() => {
     if (user && comment.likes) {
-      const currentUserId = user.id || (user as { _id?: string })._id;
-      setIsLiked(comment.likes.includes(currentUserId));
+      const userId = user.id || (user as { _id?: string })._id;
+      if (userId) {
+        setIsLiked(comment.likes.includes(userId));
+      }
     }
   }, [user, comment.likes]);
 
@@ -65,13 +67,16 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
     if (!user || isLiking || isUnliking) return;
 
     const commentId = comment._id || comment.id;
+    const userId = user.id || (user as { _id?: string })._id;
+    if (!userId) return;
+
     try {
       if (isLiked) {
-        await unlikeCommentMutate({ commentId, userId: user.id || (user as { _id?: string })._id });
+        await unlikeCommentMutate({ commentId, userId });
         setIsLiked(false);
         setLikesCount(prev => Math.max(0, prev - 1));
       } else {
-        await likeCommentMutate({ commentId, userId: user.id || (user as { _id?: string })._id });
+        await likeCommentMutate({ commentId, userId });
         setIsLiked(true);
         setLikesCount(prev => prev + 1);
       }

@@ -2,6 +2,7 @@
 
 import { connectToDatabase } from "@/lib/mongoose";
 import User from "@/lib/models/user.model";
+import Post from "@/lib/models/post.model";
 
 export async function getUserByIdServer(userId: string) {
     try {

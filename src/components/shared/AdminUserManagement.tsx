@@ -173,7 +173,7 @@ const AdminUserManagement = () => {
     return (
       <>
         <div className="grid gap-4">
-          {usersData.users.map((user: AdminUser, index) => (
+          {usersData.users.map((user: AdminUser, index: number) => (
             <motion.div
               key={user._id || user.id}
               initial={{ opacity: 0, y: 20 }}
@@ -339,7 +339,7 @@ const AdminUserManagement = () => {
                   <p className="text-light-1 mb-2 line-clamp-2">{post.caption}</p>
 
                   <div className="flex gap-4 text-xs text-light-3">
-                    <span>Posted: {new Date(post.createdAt || post.created_at).toLocaleDateString()}</span>
+                    <span>Posted: {new Date(post.createdAt).toLocaleDateString()}</span>
                     {post.location && <span>📍 {post.location}</span>}
                   </div>
                 </div>

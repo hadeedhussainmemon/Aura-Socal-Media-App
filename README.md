@@ -1,6 +1,20 @@
-# SociaLens - Advanced Social Media Platform
+# Aura - Advanced Social Media Platform
 
-SociaLens is a feature-rich social media platform built with Next.js 15, React, TypeScript, and Supabase. It combines modern design with powerful functionality including real-time user activity tracking, comprehensive admin management, and advanced user engagement features.
+Aura is a feature-rich social media platform built with Next.js 15, React, TypeScript, and Supabase. It combines modern design with powerful functionality including real-time user activity tracking, comprehensive admin management, and advanced user engagement features.
+
+---
+
+### 🌟 **What is Aura? (For Everyone)**
+
+Aura is a modern, fast, and secure social space where you can connect with others, share your stories through photos, and keep up with what's happening in your community. Think of it as a premium, privacy-focused alternative to mainstream social networks.
+
+**Why you'll love it:**
+- **Lightning Fast**: We've recently upgraded how images load, meaning the app feels snappier and uses less data on your phone.
+- **Real-Time Connection**: See exactly who's online or when they were last active with our smart "Presence" system.
+- **Clean & Simple**: Designed to be intuitive and beautiful, so you can focus on the content that matters.
+- **Peace of Mind**: Built with modern security to keep your data safe and your experience smooth.
+
+---
 
 ## ✨ Key Features
 

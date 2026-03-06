@@ -39,7 +39,7 @@ const AuthPromptModal = ({ isOpen, onClose, action }: AuthPromptModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
@@ -62,7 +62,7 @@ const AuthPromptModal = ({ isOpen, onClose, action }: AuthPromptModalProps) => {
             You need to be signed in to {action}.
           </p>
           <p className="text-light-3 text-sm">
-            Join SociaLens to interact with posts and connect with others!
+            Join Aura to interact with posts and connect with others!
           </p>
         </div>
 
