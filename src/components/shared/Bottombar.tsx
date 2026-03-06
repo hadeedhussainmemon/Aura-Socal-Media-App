@@ -1,6 +1,5 @@
-"use client";
-
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { bottombarLinks } from "@/constants";
@@ -16,10 +15,9 @@ const Bottombar = () => {
           <Link
             key={`bottombar-${link.label}`}
             href={link.route}
-            className={`${
-              isActive && "rounded-[10px] bg-primary-500 "
-            } flex-center flex-col gap-1 p-2 transition`}>
-            <img
+            className={`${isActive && "rounded-[10px] bg-primary-500 "
+              } flex-center flex-col gap-1 p-2 transition`}>
+            <Image
               src={link.imgURL}
               alt={link.label}
               width={16}

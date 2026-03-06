@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -131,7 +132,7 @@ const AdminManagement = () => {
             className="shad-button_primary"
             disabled={isAddingAdminUser || isRemovingAdmin}
           >
-            <img
+            <Image
               src="/assets/icons/add-post.svg"
               alt="add"
               width={16}
@@ -215,10 +216,12 @@ const AdminManagement = () => {
                   className="flex items-center justify-between p-4 bg-dark-3/30 rounded-lg border border-dark-4"
                 >
                   <div className="flex items-center gap-3">
-                    <img
+                    <Image
                       src={admin.imageUrl || admin.image_url || "/assets/icons/profile-placeholder.svg"}
                       alt={admin.name}
-                      className="w-10 h-10 rounded-full border border-primary-500/20"
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full border border-primary-500/20 object-cover"
                     />
                     <div>
                       <p className="font-semibold text-light-1">{admin.name}</p>
@@ -254,7 +257,7 @@ const AdminManagement = () => {
                       {isRemovingAdmin ? (
                         <Loader />
                       ) : (
-                        <img
+                        <Image
                           src="/assets/icons/delete.svg"
                           alt="remove"
                           width={16}
@@ -269,7 +272,7 @@ const AdminManagement = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <img
+              <Image
                 src="/assets/icons/people.svg"
                 width={48}
                 height={48}

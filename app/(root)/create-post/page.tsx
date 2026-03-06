@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import PostForm from "@/components/forms/PostForm";
 
 const CreatePost = () => {
@@ -7,7 +8,7 @@ const CreatePost = () => {
     <div className="flex flex-1">
       <div className="common-container">
         <div className="max-w-5xl flex-start gap-3 justify-start w-full">
-          <img
+          <Image
             src="/assets/icons/add-post.svg"
             width={36}
             height={36}

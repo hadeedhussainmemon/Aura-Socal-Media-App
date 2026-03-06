@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { checkIsLiked } from "@/lib/utils";
@@ -154,7 +155,7 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
         <div className="flex gap-4 mr-5">
           {/* Like Button */}
           <div className="flex gap-2 items-center">
-            <img
+            <Image
               src={`${checkIsLiked(likes, userId)
                 ? "/assets/icons/liked.svg"
                 : "/assets/icons/like.svg"
@@ -162,7 +163,7 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
               alt="like"
               width={20}
               height={20}
-              onClick={(e) => handleLikePost(e)}
+              onClick={(e) => handleLikePost(e as unknown as React.MouseEvent<HTMLImageElement, MouseEvent>)}
               className="cursor-pointer"
             />
             <p className="small-medium lg:base-medium">{likes.length}</p>
@@ -171,7 +172,7 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
           {/* Comments Button */}
           {showComments && (
             <div className="flex gap-2 items-center">
-              <img
+              <Image
                 src="/assets/icons/chat.svg"
                 alt="comment"
                 width={20}
@@ -187,25 +188,25 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
 
           {/* Share Button */}
           <div className="flex gap-2 items-center">
-            <img
+            <Image
               src="/assets/icons/share.svg"
               alt="share"
               width={20}
               height={20}
               className="cursor-pointer"
-              onClick={(e) => handleSharePost(e)}
+              onClick={(e) => handleSharePost(e as unknown as React.MouseEvent<HTMLImageElement, MouseEvent>)}
             />
           </div>
         </div>
 
         <div className="flex gap-2">
-          <img
+          <Image
             src={isSaved ? "/assets/icons/saved.svg" : "/assets/icons/save.svg"}
             alt="save"
             width={20}
             height={20}
             className="cursor-pointer"
-            onClick={(e) => handleSavePost(e)}
+            onClick={(e) => handleSavePost(e as unknown as React.MouseEvent<HTMLImageElement, MouseEvent>)}
           />
         </div>
       </div>

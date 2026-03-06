@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import { IUser } from "@/types";
 
 type ShareProfileModalProps = {
@@ -124,10 +126,12 @@ const ShareProfileModal = ({ isOpen, onClose, user }: ShareProfileModalProps) =>
         {/* Profile Preview */}
         <div className="mb-6 p-3 bg-dark-3 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <img
+            <Image
               src={user.image_url || "/assets/icons/profile-placeholder.svg"}
               alt="profile"
-              className="w-8 h-8 rounded-full"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-full object-cover"
             />
             <span className="text-light-2 text-sm font-medium">{user.name}</span>
           </div>
@@ -160,8 +164,8 @@ const ShareProfileModal = ({ isOpen, onClose, user }: ShareProfileModalProps) =>
             <button
               onClick={handleCopyLink}
               className={`px-3 py-1 rounded text-sm transition-colors ${copied
-                  ? 'bg-green-600 text-white'
-                  : 'bg-primary-500 hover:bg-primary-600 text-white'
+                ? 'bg-green-600 text-white'
+                : 'bg-primary-500 hover:bg-primary-600 text-white'
                 }`}
             >
               {copied ? 'Copied!' : 'Copy'}

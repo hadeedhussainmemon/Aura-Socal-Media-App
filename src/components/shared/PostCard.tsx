@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { multiFormatDateString } from "@/lib/utils";
 import { useSession } from "next-auth/react";
@@ -39,12 +40,14 @@ const PostCard = ({ post }: PostCardProps) => {
       <div className="flex-between">
         <div className="flex items-center gap-3">
           <Link href={`/profile/${post.creator.id}`}>
-            <img
+            <Image
               src={
                 post.creator?.imageUrl ||
                 "/assets/icons/profile-placeholder.svg"
               }
               alt="creator"
+              width={48}
+              height={48}
               className="w-12 h-12 rounded-full object-cover border-2 border-primary-500/20"
             />
           </Link>
@@ -75,7 +78,7 @@ const PostCard = ({ post }: PostCardProps) => {
 
         <div className={`flex gap-2 ${user?.id !== post.creator.id && "hidden"}`}>
           <Link href={`/update-post/${post._id}`}>
-            <img
+            <Image
               src={"/assets/icons/edit.svg"}
               alt="edit"
               width={20}
@@ -89,7 +92,7 @@ const PostCard = ({ post }: PostCardProps) => {
             variant="ghost"
             className="p-0 h-auto hover:bg-transparent"
           >
-            <img
+            <Image
               src={"/assets/icons/delete.svg"}
               alt="delete"
               width={20}
@@ -113,10 +116,12 @@ const PostCard = ({ post }: PostCardProps) => {
         </div>
 
         <div className="overflow-hidden rounded-[24px]">
-          <img
+          <Image
             src={post.imageUrl || "/assets/icons/profile-placeholder.svg"}
             alt="post image"
-            className="post-card_img hover:scale-105 transition-transform duration-500"
+            width={600}
+            height={400}
+            className="post-card_img hover:scale-105 transition-transform duration-500 object-cover"
           />
         </div>
       </Link>

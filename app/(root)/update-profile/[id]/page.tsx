@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -144,7 +145,7 @@ const UpdateProfile = () => {
     <div className="flex flex-1">
       <div className="common-container md:pt-12">
         <div className="flex-start gap-3 justify-start w-full max-w-5xl">
-          <img
+          <Image
             src="/assets/icons/edit.svg"
             width={36}
             height={36}

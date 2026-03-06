@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 
@@ -184,7 +185,7 @@ const NotificationBell = () => {
                     </div>
                     <div>
                       <p className="text-light-3 text-sm">No notifications yet</p>
-                      <p className="text-light-4 text-xs mt-1">We'll notify you when something happens!</p>
+                      <p className="text-light-4 text-xs mt-1">We&apos;ll notify you when something happens!</p>
                     </div>
                   </div>
                 </motion.div>
@@ -202,9 +203,11 @@ const NotificationBell = () => {
                       <div className="flex items-start gap-3">
                         {/* Avatar */}
                         <div className="flex-shrink-0">
-                          <img
+                          <Image
                             src={n.user?.image_url || "/assets/icons/profile-placeholder.svg"}
                             alt={n.user?.username || "User"}
+                            width={40}
+                            height={40}
                             className="w-10 h-10 rounded-full object-cover border border-dark-4"
                           />
                         </div>

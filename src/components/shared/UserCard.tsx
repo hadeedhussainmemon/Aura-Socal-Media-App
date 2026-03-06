@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { Button } from "../ui/button";
 import { useIsFollowing, useFollowUser, useUnfollowUser } from "@/lib/react-query/queriesAndMutations";
@@ -30,10 +31,12 @@ const UserCard = ({ user }: UserCardProps) => {
 
   return (
     <Link href={`/profile/${user.id || user._id}`} className="user-card">
-      <img
+      <Image
         src={user?.imageUrl || "/assets/icons/profile-placeholder.svg"}
         alt="creator"
-        className="rounded-full w-14 h-14"
+        width={56}
+        height={56}
+        className="rounded-full w-14 h-14 object-cover"
       />
 
       <div className="flex-center flex-col gap-1">

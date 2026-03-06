@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import Loader from "@/components/shared/Loader";
 import GridPostList from "@/components/shared/GridPostList";
@@ -47,7 +48,7 @@ const Saved = () => {
   return (
     <div className="saved-container">
       <div className="flex gap-2 w-full max-w-5xl">
-        <img
+        <Image
           src="/assets/icons/save.svg"
           width={36}
           height={36}

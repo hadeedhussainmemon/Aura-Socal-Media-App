@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import Loader from "@/components/shared/Loader";
 import UserCard from "@/components/shared/UserCard";
@@ -86,7 +87,7 @@ const AllUsers = () => {
           {/* Full Width Search Input */}
           <div className="w-full relative">
             <div className="flex items-center gap-3 w-full h-12 bg-dark-4 rounded-lg px-4 transition-all duration-200 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-opacity-50">
-              <img
+              <Image
                 src="/assets/icons/search.svg"
                 width={20}
                 height={20}
@@ -135,7 +136,7 @@ const AllUsers = () => {
                   ) : (
                     <>
                       <span>Found {otherUsers.length} user{otherUsers.length !== 1 ? 's' : ''} matching</span>
-                      <span className="text-primary-500 font-semibold">"{debouncedSearch}"</span>
+                      <span className="text-primary-500 font-semibold">&quot;{debouncedSearch}&quot;</span>
                     </>
                   )}
                 </div>
@@ -150,7 +151,7 @@ const AllUsers = () => {
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <img
+                    <Image
                       src="/assets/icons/people.svg"
                       width={80}
                       height={80}

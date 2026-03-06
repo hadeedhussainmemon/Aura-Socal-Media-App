@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
@@ -145,7 +146,7 @@ const NotificationPopup = ({ notification, onClose, onAction }: NotificationPopu
                 <div className="flex items-center gap-3">
                   {/* Icon with gradient background */}
                   <div className={`flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-r ${getTypeColor()} shadow-lg`}>
-                    <img
+                    <Image
                       src={getIcon()}
                       alt={notification.type}
                       width={18}
@@ -180,9 +181,11 @@ const NotificationPopup = ({ notification, onClose, onAction }: NotificationPopu
               {/* Content */}
               <div className="flex items-start gap-3 mb-4">
                 <div className="relative">
-                  <img
+                  <Image
                     src={notification.avatar || "/assets/icons/profile-placeholder.svg"}
                     alt={notification.userName}
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-xl object-cover border-2 border-dark-4/50"
                   />
                   {/* Online indicator */}

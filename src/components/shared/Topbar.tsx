@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 import { Button } from "../ui/button";
 import { useSession, signOut } from "next-auth/react";
@@ -34,7 +35,7 @@ const Topbar = () => {
                 className="shad-button_ghost p-2 hover:bg-primary-500/10 transition-colors"
                 title="Admin Dashboard"
               >
-                <img
+                <Image
                   src="/assets/icons/filter.svg"
                   alt="admin"
                   width={18}
@@ -48,14 +49,16 @@ const Topbar = () => {
           <Button
             className="shad-button_ghost p-2 hover:bg-red-500/10 transition-colors"
             onClick={() => signOut({ callbackUrl: '/sign-in' })}>
-            <img src="/assets/icons/logout.svg" alt="logout" width={18} height={18} className="hover:scale-110 transition-transform" />
+            <Image src="/assets/icons/logout.svg" alt="logout" width={18} height={18} className="hover:scale-110 transition-transform" />
           </Button>
           <Link href={`/profile/${user?.id}`} className="flex-center group">
             <div className="p-0.5 rounded-full bg-gradient-to-tr from-primary-500 to-purple-500 group-hover:scale-105 transition-transform duration-300">
-              <img
+              <Image
                 src={user?.image || "/assets/icons/profile-placeholder.svg"}
                 alt="profile"
-                className="h-7 w-7 rounded-full border-2 border-dark-2"
+                width={28}
+                height={28}
+                className="h-7 w-7 rounded-full border-2 border-dark-2 object-cover"
               />
             </div>
           </Link>

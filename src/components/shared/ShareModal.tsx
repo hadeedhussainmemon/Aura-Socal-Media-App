@@ -1,11 +1,11 @@
-"use client";
-
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import { IPost } from "@/types";
 
 type ShareModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  post: IPost;
+  post: IPost & { url?: string; name?: string; username?: string; bio?: string };
   isProfile?: boolean;
 };
 
@@ -128,13 +128,15 @@ const ShareModal = ({ isOpen, onClose, post, isProfile = false }: ShareModalProp
         {/* Preview */}
         <div className="mb-6 p-3 bg-dark-3 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <img
+            <Image
               src={isProfile
                 ? post.image_url || "/assets/icons/profile-placeholder.svg"
                 : post.creator?.image_url || "/assets/icons/profile-placeholder.svg"
               }
               alt={isProfile ? "profile" : "creator"}
-              className="w-8 h-8 rounded-full"
+              width={32}
+              height={32}
+              className="w-8 h-8 rounded-full object-cover"
             />
             <span className="text-light-2 text-sm font-medium">{isProfile ? post.name : post.creator?.name}</span>
           </div>
@@ -167,8 +169,8 @@ const ShareModal = ({ isOpen, onClose, post, isProfile = false }: ShareModalProp
             <button
               onClick={handleCopyLink}
               className={`px-3 py-1 rounded text-sm transition-colors ${copied
-                  ? 'bg-green-600 text-white'
-                  : 'bg-primary-500 hover:bg-primary-600 text-white'
+                ? 'bg-green-600 text-white'
+                : 'bg-primary-500 hover:bg-primary-600 text-white'
                 }`}
             >
               {copied ? 'Copied!' : 'Copy'}

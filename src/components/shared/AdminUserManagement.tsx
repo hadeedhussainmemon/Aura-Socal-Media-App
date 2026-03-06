@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,7 +158,7 @@ const AdminUserManagement = () => {
     if (!usersData?.users || usersData.users.length === 0) {
       return (
         <div className="text-center py-8">
-          <img
+          <Image
             src="/assets/icons/people.svg"
             width={48}
             height={48}
@@ -182,9 +183,11 @@ const AdminUserManagement = () => {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <img
+                  <Image
                     src={user.imageUrl || user.image_url || "/assets/icons/profile-placeholder.svg"}
                     alt={user.name}
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-full object-cover border border-primary-500/20"
                   />
                   <div className="flex-1">
@@ -288,7 +291,7 @@ const AdminUserManagement = () => {
     if (!postsData?.posts || postsData.posts.length === 0) {
       return (
         <div className="text-center py-8">
-          <img
+          <Image
             src="/assets/icons/posts.svg"
             width={48}
             height={48}
@@ -312,20 +315,22 @@ const AdminUserManagement = () => {
               className="p-4 bg-dark-3/30 rounded-lg border border-dark-4"
             >
               <div className="flex gap-4">
-                {post.imageUrl || post.image_url && (
-                  <img
-                    src={post.imageUrl || post.image_url}
-                    alt="Post image"
-                    className="w-20 h-20 rounded-lg object-cover"
-                  />
-                )}
+                <Image
+                  src={post.imageUrl || post.image_url || ""}
+                  alt="Post image"
+                  width={80}
+                  height={80}
+                  className="w-20 h-20 rounded-lg object-cover"
+                />
 
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <img
+                    <Image
                       src={post.creator.imageUrl || "/assets/icons/profile-placeholder.svg"}
                       alt={post.creator.name}
-                      className="w-6 h-6 rounded-full"
+                      width={24}
+                      height={24}
+                      className="w-6 h-6 rounded-full object-cover"
                     />
                     <span className="text-sm text-light-2">{post.creator.name}</span>
                     <span className="text-xs text-light-4">@{post.creator.username}</span>
@@ -350,7 +355,7 @@ const AdminUserManagement = () => {
                     {isDeletingPost ? (
                       <Loader />
                     ) : (
-                      <img
+                      <Image
                         src="/assets/icons/delete.svg"
                         alt="delete"
                         width={16}

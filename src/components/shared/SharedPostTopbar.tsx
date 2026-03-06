@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { Session } from "next-auth"; // Import Session type
 
@@ -27,7 +28,7 @@ const SharedPostTopbar = () => {
     <section className="topbar">
       <div className="flex-between py-4 px-5">
         <Link href="/" className="flex gap-3 items-center">
-          <img
+          <Image
             src="/assets/images/logo.svg"
             alt="logo"
             width={130}
@@ -36,10 +37,12 @@ const SharedPostTopbar = () => {
         </Link>
         <div className="flex gap-4">
           <Link href="/sign-in" className="flex-center gap-3">
-            <img
+            <Image
               src={user?.image || (user as { imageUrl?: string })?.imageUrl || "/assets/icons/profile-placeholder.svg"}
               alt="profile"
-              className="h-8 w-8 rounded-full cursor-pointer"
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-full cursor-pointer object-cover"
             />
           </Link>
         </div>

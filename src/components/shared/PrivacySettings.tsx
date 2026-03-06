@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useUpdateUser } from "@/lib/react-query/queriesAndMutations";
 import { useToast } from "@/components/ui/use-toast";
@@ -93,7 +94,7 @@ const PrivacySettings = ({ currentPrivacy, userId, onClose }: PrivacySettingsPro
       <div className="flex items-center justify-between pb-3 border-b border-dark-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-            <img
+            <Image
               src="/assets/icons/profile-placeholder.svg"
               alt="privacy"
               width={16}

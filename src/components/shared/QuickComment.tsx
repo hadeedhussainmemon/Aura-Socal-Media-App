@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -71,7 +72,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
     }
   };
 
-  const handleSubmitReply = async () => {
+  const handleSubmitReply = async (parentId: string) => {
     if (!user) {
       setAuthAction("reply to comments");
       setShowAuthPrompt(true);
@@ -85,7 +86,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
         content: replyContent.trim(),
         postId,
         userId: user.id || (user as { _id?: string })._id || "",
-        // parentId: parentId, // MongoDB schema update needed for replies if nested
+        parentId: parentId,
       });
 
       setReplyContent("");
@@ -166,12 +167,12 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
       {/* Comment Form - Only show if user is authenticated */}
       {user ? (
         <form onSubmit={handleSubmit} className="flex items-center gap-3 p-3">
-          <img
+          <Image
             src={user.imageUrl || (user as { image?: string }).image || "/assets/icons/profile-placeholder.svg"}
             alt="Your profile"
             width={32}
             height={32}
-            className="rounded-full"
+            className="rounded-full object-cover"
           />
 
           <div className="flex-1 flex items-center gap-2">
@@ -199,7 +200,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
       ) : (
         /* Auth prompt for unauthenticated users */
         <div className="flex items-center gap-3 p-3 bg-dark-4 rounded-lg">
-          <img
+          <Image
             src="/assets/icons/profile-placeholder.svg"
             alt="Guest profile"
             width={32}
@@ -239,12 +240,12 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                 <div key={commentItem._id} className="flex gap-3">
                   {/* User Avatar */}
                   <Link href={`/profile/${commentItem.user._id}`}>
-                    <img
+                    <Image
                       src={commentItem.user.imageUrl || "/assets/icons/profile-placeholder.svg"}
                       alt={commentItem.user.name}
                       width={28}
                       height={28}
-                      className="rounded-full mt-1 border border-primary-500/10"
+                      className="rounded-full mt-1 border border-primary-500/10 object-cover"
                     />
                   </Link>
 
@@ -327,13 +328,13 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleLikeComment(commentItem._id)}
-                        className={`text-xs px-1 py-0 h-auto ${likedComments.has(commentItem._id)
+                        onClick={() => handleLikeComment(commentItem._id || commentItem.id)}
+                        className={`text-xs px-1 py-0 h-auto ${likedComments.has(commentItem._id || commentItem.id)
                           ? 'text-red-500 hover:text-red-400'
                           : 'text-light-4 hover:text-primary-500'
                           }`}
                       >
-                        {likedComments.has(commentItem._id) ? 'Unlike' : 'Like'}
+                        {likedComments.has(commentItem._id || commentItem.id) ? 'Unlike' : 'Like'}
                       </Button>
 
                       <Button
@@ -345,7 +346,8 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                             setShowAuthPrompt(true);
                             return;
                           }
-                          setReplyingTo(replyingTo === commentItem._id ? null : commentItem._id);
+                          const id = commentItem._id || commentItem.id;
+                          setReplyingTo(replyingTo === id ? null : id);
                         }}
                         className="text-xs text-light-4 hover:text-primary-500 px-1 py-0 h-auto"
                       >
@@ -358,7 +360,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEditComment(commentItem._id, commentItem.content)}
+                            onClick={() => handleEditComment(commentItem._id || commentItem.id, commentItem.content)}
                             className="text-xs text-light-4 hover:text-blue-500 px-1 py-0 h-auto"
                           >
                             Edit
@@ -367,7 +369,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDeleteComment(commentItem._id)}
+                            onClick={() => handleDeleteComment(commentItem._id || commentItem.id)}
                             className="text-xs text-light-4 hover:text-red-500 px-1 py-0 h-auto"
                           >
                             Delete
@@ -379,12 +381,12 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                     {/* Reply Form */}
                     {replyingTo === commentItem.id && (
                       <div className="flex items-center gap-2 mt-2 mb-2">
-                        <img
-                          src={user.imageUrl || (user as { image?: string }).image || "/assets/icons/profile-placeholder.svg"}
+                        <Image
+                          src={user?.imageUrl || (user as { image?: string }).image || "/assets/icons/profile-placeholder.svg"}
                           alt="Your profile"
                           width={24}
                           height={24}
-                          className="rounded-full"
+                          className="rounded-full object-cover"
                         />
                         <Input
                           type="text"
@@ -420,12 +422,12 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                           <div key={reply.id} className="space-y-1">
                             <div className="flex gap-2">
                               <Link href={`/profile/${reply.user.id}`}>
-                                <img
-                                  src={reply.user.image || reply.user.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                                <Image
+                                  src={reply.user.imageUrl || "/assets/icons/profile-placeholder.svg"}
                                   alt={reply.user.name}
                                   width={24}
                                   height={24}
-                                  className="rounded-full"
+                                  className="rounded-full object-cover"
                                 />
                               </Link>
                               <div className="bg-dark-4 rounded-lg px-3 py-1 flex-1">
@@ -493,7 +495,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                             {/* Reply Meta */}
                             <div className="flex items-center gap-4 ml-6">
                               <span className="text-xs text-light-4">
-                                {multiFormatDateString(reply.createdAt || reply.created_at)}
+                                {multiFormatDateString(reply.createdAt)}
                               </span>
 
                               {reply._count?.likes && reply._count.likes > 0 && (

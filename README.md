@@ -254,6 +254,12 @@ npm start
 
 ## 🔄 Recent Updates (Latest Release)
 
+### v2.1.0 - Performance & Type Safety Optimization
+- ✅ **Full Image Optimization**: Replaced all native `<img>` tags with Next.js `<Image />` component for improved LCP and bandwidth efficiency.
+- ✅ **Global Image Coverage**: Optimized images in navigation, posts, profiles, grids, and notification systems.
+- ✅ **TypeScript Type Refinement**: Resolved all `any` type warnings in file uploaders and shared components for enhanced developer experience.
+- ✅ **Zero Lint Warnings**: Successfully eliminated all ESLint warnings for a cleaner, production-ready codebase.
+
 ### v2.0.0 - Comprehensive User Management System
 - ✅ **Real-time Activity Tracking**: Smart presence indicators with 6-tier system
 - ✅ **Admin Dashboard**: Complete user and post management interface

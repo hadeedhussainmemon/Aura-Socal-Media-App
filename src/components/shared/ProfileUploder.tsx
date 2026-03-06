@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { FileWithPath, useDropzone } from "react-dropzone";
+import Image from "next/image";
+import { FileWithPath, useDropzone, FileRejection } from "react-dropzone";
 
 import { convertFileToUrl } from "@/lib/utils";
 
@@ -41,14 +42,14 @@ const ProfileUploader = ({ fieldChange, mediaUrl }: ProfileUploaderProps) => {
   );
 
   const onDropRejected = useCallback(
-    (rejectedFiles: { errors: { code: string }[] }[]) => {
-      console.log('Profile onDropRejected called with:', rejectedFiles);
+    (fileRejections: FileRejection[]) => {
+      console.log('Profile onDropRejected called with:', fileRejections);
 
-      if (rejectedFiles && rejectedFiles.length > 0) {
-        rejectedFiles.forEach((file) => {
-          console.log('Rejected profile file:', file);
-          if (file.errors) {
-            file.errors.forEach((error: { code: string }) => {
+      if (fileRejections && fileRejections.length > 0) {
+        fileRejections.forEach((rejection: FileRejection) => {
+          console.log('Rejected profile file:', rejection.file);
+          if (rejection.errors) {
+            rejection.errors.forEach((error) => {
               console.log('Profile file error:', error);
               if (error.code === 'file-too-large') {
                 setErrorMessage('File size exceeds 2MB limit. Please choose a smaller file.');
@@ -89,9 +90,11 @@ const ProfileUploader = ({ fieldChange, mediaUrl }: ProfileUploaderProps) => {
         <input {...getInputProps()} className="cursor-pointer" />
 
         <div className="cursor-pointer flex-center gap-4">
-          <img
+          <Image
             src={fileUrl || "/assets/icons/profile-placeholder.svg"}
             alt="image"
+            width={96}
+            height={96}
             className="h-24 w-24 rounded-full object-cover object-top"
           />
           <p className="text-primary-500 small-regular md:bbase-semibold">

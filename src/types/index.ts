@@ -107,6 +107,11 @@ export type IComment = {
   parentComment: string | null;
   likes: string[];
   replies?: IComment[];
+  is_edited?: boolean;
+  _count?: {
+    likes?: number;
+    replies?: number;
+  };
 };
 
 export type DocumentList = {

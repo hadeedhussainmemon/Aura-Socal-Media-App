@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { FileWithPath, useDropzone } from "react-dropzone";
+import Image from "next/image";
+import { FileWithPath, useDropzone, FileRejection } from "react-dropzone";
 
 import { convertFileToUrl } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -42,12 +43,12 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
   );
 
   const onDropRejected = useCallback(
-    (fileRejections: unknown) => {
+    (fileRejections: FileRejection[]) => {
       console.log('onDropRejected called with:', fileRejections);
 
       if (fileRejections && Array.isArray(fileRejections) && fileRejections.length > 0) {
-        fileRejections.forEach((rejection) => {
-          const { file, errors } = rejection as { file: File; errors: { code: string }[] };
+        fileRejections.forEach((rejection: FileRejection) => {
+          const { file, errors } = rejection;
           console.log('Rejected file:', file);
           if (errors) {
             errors.forEach((error: { code: string }) => {
@@ -95,13 +96,19 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
         {fileUrl ? (
           <>
             <div className="flex flex-1 justify-center w-full p-5 lg:p-10">
-              <img src={fileUrl} alt="image" className="file_uploader-img" />
+              <Image
+                src={fileUrl}
+                alt="image"
+                width={400}
+                height={400}
+                className="file_uploader-img object-cover"
+              />
             </div>
             <p className="file_uploader-label">Click or drag photo to replace</p>
           </>
         ) : (
           <div className="file_uploader-box ">
-            <img
+            <Image
               src="/assets/icons/file-upload.svg"
               width={96}
               height={77}

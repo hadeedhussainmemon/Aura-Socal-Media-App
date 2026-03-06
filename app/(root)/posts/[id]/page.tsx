@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 
 import { multiFormatDateString } from "@/lib/utils";
@@ -81,7 +82,7 @@ const PostDetails = () => {
           onClick={() => router.back()}
           variant="ghost"
           className="shad-button_ghost">
-          <img
+          <Image
             src={"/assets/icons/back.svg"}
             alt="back"
             width={24}
@@ -95,10 +96,12 @@ const PostDetails = () => {
         <Loader />
       ) : (
         <div className="post_details-card">
-          <img
-            src={post?.imageUrl}
-            alt="creator"
-            className="post_details-img"
+          <Image
+            src={post?.imageUrl || ""}
+            alt="post"
+            width={1000}
+            height={1000}
+            className="post_details-img object-contain bg-dark-1"
           />
 
           <div className="post_details-info">
@@ -106,13 +109,15 @@ const PostDetails = () => {
               <Link
                 href={`/profile/${post?.creator._id}`}
                 className="flex items-center gap-3">
-                <img
+                <Image
                   src={
                     post?.creator.imageUrl ||
                     "/assets/icons/profile-placeholder.svg"
                   }
                   alt="creator"
-                  className="w-8 h-8 lg:w-12 lg:h-12 rounded-full"
+                  width={48}
+                  height={48}
+                  className="w-8 h-8 lg:w-12 lg:h-12 rounded-full object-cover"
                 />
                 <div className="flex gap-1 flex-col">
                   <p className="base-medium lg:body-bold text-light-1">
@@ -134,7 +139,7 @@ const PostDetails = () => {
                 <Link
                   href={`/update-post/${post?._id}`}
                   className={`${user?.id !== post?.creator._id && "hidden"}`}>
-                  <img
+                  <Image
                     src={"/assets/icons/edit.svg"}
                     alt="edit"
                     width={24}
@@ -148,7 +153,7 @@ const PostDetails = () => {
                   disabled={isDeleting}
                   className={`ghost_details-delete_btn ${user?.id !== post?.creator._id && "hidden"
                     }`}>
-                  <img
+                  <Image
                     src={"/assets/icons/delete.svg"}
                     alt="delete"
                     width={24}

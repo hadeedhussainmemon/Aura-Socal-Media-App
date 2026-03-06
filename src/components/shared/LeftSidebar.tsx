@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 
@@ -54,9 +55,11 @@ const LeftSidebar = () => {
           <>
             <Link href={`/profile/${user.id || (user as { _id?: string })._id || user.email}`} className="flex gap-3 items-center group">
               <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-primary-500 to-purple-500 group-hover:scale-105 transition-transform duration-300">
-                <img
+                <Image
                   src={user.image || "/assets/icons/profile-placeholder.svg"}
                   alt="profile"
+                  width={56}
+                  height={56}
                   className="h-14 w-14 rounded-full object-cover border-2 border-dark-2"
                 />
               </div>
@@ -84,9 +87,11 @@ const LeftSidebar = () => {
                 <Link
                   href={link.route}
                   className="flex gap-4 items-center p-4">
-                  <img
+                  <Image
                     src={link.imgURL}
                     alt={link.label}
+                    width={24}
+                    height={24}
                     className={`group-hover:scale-110 transition-transform ${isActive && "invert-white"
                       }`}
                   />
@@ -101,7 +106,7 @@ const LeftSidebar = () => {
       <Button
         className="shad-button_ghost hover:bg-red-500/10 transition-colors"
         onClick={(e) => handleSignOut(e)}>
-        <img src="/assets/icons/logout.svg" alt="logout" className="group-hover:scale-110 transition-transform" />
+        <Image src="/assets/icons/logout.svg" alt="logout" width={24} height={24} className="group-hover:scale-110 transition-transform" />
         <p className="small-medium lg:base-medium">Logout</p>
       </Button>
     </nav>

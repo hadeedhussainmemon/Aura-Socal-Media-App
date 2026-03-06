@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
@@ -221,10 +222,12 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
     <div className="profile-container pb-20 md:pb-8">
       <div className="flex flex-col w-full max-w-5xl">
         <div className="flex flex-row items-center gap-4 sm:gap-6 w-full">
-          <img
+          <Image
             src={currentUser.imageUrl || "/assets/icons/profile-placeholder.svg"}
             alt="profile"
-            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full flex-shrink-0"
+            width={112}
+            height={112}
+            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full flex-shrink-0 object-cover"
           />
           <div className="flex flex-col items-start w-full">
             <h1 className="text-left text-xl sm:text-2xl font-bold">
@@ -285,7 +288,7 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
               className={`profile-tab rounded-l-lg ${activeTab === 'posts' && "!bg-dark-3"
                 }`}
             >
-              <img src={"/assets/icons/posts.svg"} alt="posts" width={20} height={20} />
+              <Image src={"/assets/icons/posts.svg"} alt="posts" width={20} height={20} />
               Posts
             </button>
             <button
@@ -293,7 +296,7 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
               className={`profile-tab rounded-r-lg ${activeTab === 'liked' && "!bg-dark-3"
                 }`}
             >
-              <img src={"/assets/icons/like.svg"} alt="like" width={20} height={20} />
+              <Image src={"/assets/icons/like.svg"} alt="like" width={20} height={20} />
               Liked Posts
             </button>
           </div>

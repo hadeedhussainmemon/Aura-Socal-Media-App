@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 
 import PostForm from "@/components/forms/PostForm";
@@ -43,7 +44,7 @@ const EditPost = () => {
     <div className="flex flex-1">
       <div className="common-container">
         <div className="flex-start gap-3 justify-start w-full max-w-5xl">
-          <img
+          <Image
             src="/assets/icons/edit.svg"
             width={36}
             height={36}
