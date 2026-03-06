@@ -30,20 +30,23 @@ const UserCard = ({ user }: UserCardProps) => {
   const isOwnProfile = currentUser?.id === user.id;
 
   return (
-    <Link href={`/profile/${user.id || user._id}`} className="user-card">
-      <Image
-        src={user?.imageUrl || "/assets/icons/profile-placeholder.svg"}
-        alt="creator"
-        width={56}
-        height={56}
-        className="rounded-full w-14 h-14 object-cover"
-      />
+    <Link href={`/profile/${user.id || user._id}`} className="user-card glass-card hover:bg-white/5 transition-all duration-300 border border-white/5 rounded-3xl p-6 shadow-sm hover:shadow-glass group">
+      <div className="relative">
+        <Image
+          src={user?.imageUrl || "/assets/icons/profile-placeholder.svg"}
+          alt="creator"
+          width={64}
+          height={64}
+          className="rounded-full w-16 h-16 object-cover border-2 border-white/10 group-hover:border-primary-500/50 transition-all duration-300 shadow-lg"
+        />
+        <div className="absolute inset-0 rounded-full aura-gradient opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+      </div>
 
       <div className="flex-center flex-col gap-1">
-        <p className="base-medium text-light-1 text-center line-clamp-1">
+        <p className="base-bold text-light-1 text-center line-clamp-1 group-hover:aura-text-gradient transition-all duration-300">
           {user.name}
         </p>
-        <p className="small-regular text-light-3 text-center line-clamp-1">
+        <p className="small-medium text-light-3 text-center line-clamp-1">
           @{user.username}
         </p>
       </div>
@@ -52,9 +55,9 @@ const UserCard = ({ user }: UserCardProps) => {
         <Button
           type="button"
           size="sm"
-          className={`px-5 ${isCurrentlyFollowing
-            ? "bg-dark-4 hover:bg-dark-3 text-light-1"
-            : "shad-button_primary"
+          className={`px-5 h-9 rounded-xl transition-all duration-300 ${isCurrentlyFollowing
+            ? "glass-card hover:bg-white/10 text-light-1"
+            : "bg-primary-500 hover:bg-primary-600 shadow-md shadow-primary-500/20"
             }`}
           onClick={handleFollowToggle}
           disabled={followMutation.isPending || unfollowMutation.isPending || isFollowingLoading}

@@ -61,7 +61,7 @@ const Home = () => {
     <div className="flex flex-row flex-1 w-full">
       <div className="home-container">
         <div className="home-posts">
-          <h2 className="h3-bold md:h2-bold text-left w-full">Following Feed</h2>
+          <h2 className="h3-bold md:h2-bold text-left w-full aura-text-gradient">Following Feed</h2>
           {isLoading && !posts.length ? (
             <Loader />
           ) : (
@@ -113,7 +113,7 @@ const Home = () => {
         </div>
       </div>
       <div className="home-creators">
-        <h3 className="h3-bold text-light-1">People You Might Know</h3>
+        <h3 className="h3-bold aura-text-gradient">People You Might Know</h3>
         {isLoading && !creators.length ? (
           <Loader />
         ) : (

@@ -17,7 +17,7 @@ function AuthCodeErrorContent() {
         <div className="flex-center size-full">
           <div className="flex-center flex-col">
             <Image
-              src="/assets/images/logo.svg"
+              src="/assets/images/aura-logo.png"
               alt="logo"
               width={270}
               height={36}
@@ -40,14 +40,14 @@ function AuthCodeErrorContent() {
                 This could happen if the link has expired or has already been used.
               </p>
             </div>
-            
+
             <div className="space-y-3 w-full max-w-sm">
               <Link href="/forgot-password">
                 <Button className="shad-button_primary w-full">
                   Request New Reset Link
                 </Button>
               </Link>
-              
+
               <Link href="/sign-in">
                 <Button variant="ghost" className="shad-button_ghost w-full">
                   Back to Sign In
@@ -57,9 +57,9 @@ function AuthCodeErrorContent() {
           </div>
         </div>
       </section>
-      
+
       {/* Right side - Image */}
-      <div className="hidden xl:block h-screen w-1/2 bg-no-repeat bg-cover bg-center bg-[url('/assets/images/side-img.svg')]" />
+      <div className="hidden xl:block h-screen w-1/2 bg-no-repeat bg-cover bg-center bg-[url('/assets/images/aura-side-img.png')]" />
     </div>
   );
 }

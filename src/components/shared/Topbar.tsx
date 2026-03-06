@@ -15,16 +15,16 @@ const Topbar = () => {
   const isAdmin = false;
 
   return (
-    <section className="topbar glassmorphism shadow-glass">
+    <section className="topbar glass-morphism shadow-glass">
       <div className="flex-between py-4 px-5">
         <Link href="/" className="flex gap-3 items-center group">
-          <div className="w-16 h-auto text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-400 tracking-tighter group-hover:scale-105 transition-transform duration-300">
+          <div className="w-16 h-auto text-3xl font-bold aura-text-gradient tracking-tighter group-hover:scale-105 transition-transform duration-300">
             Aura
           </div>
         </Link>
 
         <div className="flex gap-2 items-center">
-          <div className="backdrop-blur-md bg-white/5 rounded-full p-2">
+          <div className="backdrop-blur-md bg-white/5 rounded-2xl p-2 border border-white/10">
             <NotificationBell />
           </div>
 
@@ -47,18 +47,21 @@ const Topbar = () => {
           )}
 
           <Button
-            className="shad-button_ghost p-2 hover:bg-red-500/10 transition-colors"
+            className="shad-button_ghost p-2 hover:bg-red-500/20 active:scale-95 transition-all duration-300"
             onClick={() => signOut({ callbackUrl: '/sign-in' })}>
-            <Image src="/assets/icons/logout.svg" alt="logout" width={18} height={18} className="hover:scale-110 transition-transform" />
+            <Image src="/assets/icons/logout.svg" alt="logout" width={18} height={18} className="hover:scale-110 transition-transform duration-300" />
           </Button>
-          <Link href={`/profile/${user?.id}`} className="flex-center group">
-            <div className="p-0.5 rounded-full bg-gradient-to-tr from-primary-500 to-purple-500 group-hover:scale-105 transition-transform duration-300">
+          <Link
+            href={`/profile/${(user as { username?: string })?.username || user?.id}`}
+            className="flex-center group"
+          >
+            <div className="p-0.5 rounded-full bg-gradient-to-tr from-[#7928CA] to-[#FF0080] group-hover:scale-105 transition-transform duration-300">
               <Image
                 src={user?.image || "/assets/icons/profile-placeholder.svg"}
                 alt="profile"
                 width={28}
                 height={28}
-                className="h-7 w-7 rounded-full border-2 border-dark-2 object-cover"
+                className="h-7 w-7 rounded-full border-2 border-dark-1 object-cover"
               />
             </div>
           </Link>

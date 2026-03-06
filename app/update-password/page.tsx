@@ -132,7 +132,7 @@ export default function UpdatePassword() {
             </div>
           </div>
         </section>
-        <div className="hidden xl:block h-screen w-1/2 bg-no-repeat bg-cover bg-center bg-[url('/assets/images/side-img.svg')]" />
+        <div className="hidden xl:block h-screen w-1/2 bg-no-repeat bg-cover bg-center bg-[url('/assets/images/aura-side-img.png')]" />
       </div>
     );
   }
@@ -143,7 +143,7 @@ export default function UpdatePassword() {
         <Form {...form}>
           <div className="sm:w-420 flex-center flex-col">
             <Image
-              src="/assets/images/logo.svg"
+              src="/assets/images/aura-logo.png"
               alt="logo"
               width={270}
               height={36}

@@ -10,7 +10,10 @@
   }
 
   body {
-    @apply bg-main-gradient bg-fixed text-white min-h-screen font-inter;
+    @apply bg-[#030014] text-white min-h-screen font-inter;
+    background-image: 
+      radial-gradient(circle at 0% 0%, rgba(121, 40, 202, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(0, 112, 243, 0.15) 0%, transparent 50%);
   }
 
   .auth-layout {
@@ -20,6 +23,24 @@
 
   .auth-layout body {
     overflow: hidden !important;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .glass-morphism {
+    @apply bg-black/20 backdrop-blur-lg border border-white/10;
+  }
+
+  .aura-gradient {
+    @apply bg-gradient-to-br from-[#7928CA] to-[#FF0080];
+  }
+
+  .aura-text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#0070f3] via-[#7928ca] to-[#ff0080];
   }
 }
 
@@ -279,6 +300,11 @@
 
   .shad-textarea {
     @apply h-36 bg-dark-3 rounded-xl border-none focus-visible:ring-1 focus-visible:ring-offset-1 ring-offset-light-3 !important;
+  }
+
+  /* Insta-inspired Input */
+  .insta-input {
+    @apply h-10 w-full bg-[#FAFAFA]/10 border border-white/20 rounded-[3px] px-2 text-sm text-white placeholder:text-light-4 focus-visible:ring-1 focus-visible:ring-white/50 focus-visible:border-white/50 transition-all duration-200 outline-none !important;
   }
 
   /* Button */

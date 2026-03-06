@@ -106,7 +106,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="flex flex-col gap-9 w-full  max-w-5xl">
+        className="flex flex-col gap-9 w-full max-w-5xl glass-morphism p-10 rounded-3xl border border-white/5 shadow-glass">
         <FormField
           control={form.control}
           name="caption"
@@ -212,7 +212,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
           </Button>
           <Button
             type="submit"
-            className="shad-button_primary whitespace-nowrap"
+            className="shad-button_primary whitespace-nowrap h-12 px-6 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary-500/20"
             disabled={isLoading}>
             {isLoading && <Loader />}
             {action} Post

@@ -17,6 +17,19 @@ export async function getUserByIdServer(userId: string) {
     }
 }
 
+export async function getUserByUsernameServer(username: string) {
+    try {
+        await connectToDatabase();
+
+        const user = await User.findOne({ username }).select('-password');
+
+        return JSON.parse(JSON.stringify(user));
+    } catch (error) {
+        console.error("Failed to fetch user by username", error);
+        return null;
+    }
+}
+
 export async function getAllUsersServer(limit = 20) {
     try {
         await connectToDatabase();

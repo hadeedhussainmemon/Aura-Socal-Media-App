@@ -139,7 +139,7 @@ function ResetPasswordForm() {
           <div className="flex-center size-full">
             <div className="flex-center flex-col">
               <Image
-                src="/assets/images/logo.svg"
+                src="/assets/images/aura-logo.png"
                 alt="logo"
                 width={270}
                 height={36}
@@ -176,7 +176,7 @@ function ResetPasswordForm() {
         <Form {...form}>
           <div className="sm:w-420 flex-center flex-col">
             <Image
-              src="/assets/images/logo.svg"
+              src="/assets/images/aura-logo.png"
               alt="logo"
               width={270}
               height={36}

@@ -25,15 +25,12 @@ const SharedPostTopbar = () => {
   const user = (session as CustomSession)?.user;
 
   return (
-    <section className="topbar">
+    <section className="topbar glass-morphism shadow-glass">
       <div className="flex-between py-4 px-5">
-        <Link href="/" className="flex gap-3 items-center">
-          <Image
-            src="/assets/images/logo.svg"
-            alt="logo"
-            width={130}
-            height={325}
-          />
+        <Link href="/" className="flex gap-3 items-center group">
+          <div className="text-2xl font-bold aura-text-gradient tracking-tighter group-hover:scale-105 transition-transform duration-300">
+            Aura
+          </div>
         </Link>
         <div className="flex gap-4">
           <Link href="/sign-in" className="flex-center gap-3">

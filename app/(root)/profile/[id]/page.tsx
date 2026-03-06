@@ -24,8 +24,8 @@ interface StabBlockProps {
 }
 
 const StatBlock = ({ value, label }: StabBlockProps) => (
-  <div className="flex-center gap-2">
-    <p className="small-semibold lg:body-bold text-primary-500">{value}</p>
+  <div className="flex-center gap-2 bg-white/5 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/5 shadow-sm">
+    <p className="small-semibold lg:body-bold aura-text-gradient">{value}</p>
     <p className="small-medium lg:base-medium text-light-2">{label}</p>
   </div>
 );
@@ -35,7 +35,7 @@ type ProfileWrapperProps = {
 };
 
 const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
-  const { id } = React.use(params);
+  const { id: username } = React.use(params);
   const { data: session } = useSession();
   const user = session?.user;
 
@@ -55,10 +55,11 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!id) return;
+      if (!username) return;
       try {
         setIsUserLoading(true);
-        const data = await getUserByIdServer(id);
+        // FETCH BY USERNAME instead of ID
+        const data = await getUserByUsernameServer(username);
         setCurrentUser(data);
 
         if (data) {
@@ -69,8 +70,8 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
             setIsCurrentlyFollowing(data.followers?.includes(user.id) || false);
           }
 
-          // Fetch posts
-          const posts = await getUserPostsServer(id);
+          // Fetch posts using internal ID from the fetched user
+          const posts = await getUserPostsServer(data._id || data.id);
           setUserPosts(posts || []);
         }
       } catch (error) {
@@ -81,15 +82,15 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
       }
     }
     fetchUserData();
-  }, [id, user?.id]);
+  }, [username, user?.id]);
 
 
   const handleFollowToggle = async () => {
-    if (!id || !user?.id) return;
+    if (!currentUser?._id || !user?.id) return;
 
     try {
       setIsFollowingLoading(true);
-      const res = await fetch(`/api/users/${id}/follow`, { method: "POST" });
+      const res = await fetch(`/api/users/${currentUser._id}/follow`, { method: "POST" });
       if (!res.ok) throw new Error("Failed to follow/unfollow");
 
       // Optimistic UI update
@@ -157,7 +158,7 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
   };
   // ==================================================================
 
-  const isOwnProfile = user?.id === id;
+  const isOwnProfile = user?.id === currentUser?._id;
 
   if (isUserLoading) {
     return <div className="flex-center w-full h-full"><Loader /></div>;
@@ -175,18 +176,18 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
         <>
           <Link
             href={`/update-profile/${currentUser._id}`}
-            className="h-10 bg-dark-4 px-4 text-light-1 flex-center gap-2 rounded-lg hover:bg-dark-3 flex-1"
+            className="h-10 glass-card px-4 text-light-1 flex-center gap-2 rounded-lg hover:bg-white/10 flex-1 transition-all duration-300"
           >
             <p className="flex whitespace-nowrap small-medium">Edit Profile</p>
           </Link>
           <Button
             type="button"
-            className="h-10 bg-dark-4 px-4 text-light-1 rounded-lg hover:bg-dark-3 flex-1"
+            className="h-10 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 flex-1 transition-all duration-300"
             onClick={() => setShowPrivacySettings(!showPrivacySettings)}
           >
             <p className="flex whitespace-nowrap small-medium">Settings</p>
           </Button>
-          <Button type="button" className="h-10 bg-dark-4 px-4 text-light-1 rounded-lg hover:bg-dark-3 flex-1" onClick={handleShareProfile}>
+          <Button type="button" className="h-10 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 flex-1 transition-all duration-300" onClick={handleShareProfile}>
             <p className="flex whitespace-nowrap small-medium">Share Profile</p>
           </Button>
         </>
@@ -194,9 +195,9 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
         <>
           <Button
             type="button"
-            className={`h-10 px-4 text-light-1 flex-center gap-2 rounded-lg flex-1 ${isCurrentlyFollowing
-              ? "bg-dark-4 hover:bg-dark-3"
-              : "bg-primary-500 hover:bg-primary-600"
+            className={`h-10 px-4 text-light-1 flex-center gap-2 rounded-lg flex-1 transition-all duration-300 ${isCurrentlyFollowing
+              ? "glass-card hover:bg-white/10"
+              : "bg-primary-500 hover:bg-primary-600 shadow-lg shadow-primary-500/20"
               }`}
             onClick={handleFollowToggle}
             disabled={isFollowingLoading}
@@ -210,7 +211,7 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
               }
             </p>
           </Button>
-          <Button type="button" className="h-10 bg-dark-4 px-4 text-light-1 rounded-lg hover:bg-dark-3 flex-1" onClick={handleShareProfile}>
+          <Button type="button" className="h-10 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 flex-1 transition-all duration-300" onClick={handleShareProfile}>
             <p className="flex whitespace-nowrap small-medium">Share Profile</p>
           </Button>
         </>
@@ -220,7 +221,7 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
 
   return (
     <div className="profile-container pb-20 md:pb-8">
-      <div className="flex flex-col w-full max-w-5xl">
+      <div className="flex flex-col w-full max-w-5xl glass-morphism p-8 rounded-3xl border border-white/5 shadow-glass">
         <div className="flex flex-row items-center gap-4 sm:gap-6 w-full">
           <Image
             src={currentUser.imageUrl || "/assets/icons/profile-placeholder.svg"}

@@ -39,10 +39,10 @@ const LeftSidebar = () => {
   });
 
   return (
-    <nav className="leftsidebar glassmorphism shadow-glass">
+    <nav className="leftsidebar glass-morphism shadow-glass">
       <div className="flex flex-col gap-11">
         <Link href="/" className="flex gap-3 items-center group">
-          <div className="w-32 h-auto text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-400 tracking-tighter group-hover:scale-105 transition-transform duration-300">
+          <div className="w-32 h-auto text-4xl font-bold aura-text-gradient tracking-tighter group-hover:scale-105 transition-transform duration-300">
             Aura
           </div>
         </Link>
@@ -53,23 +53,26 @@ const LeftSidebar = () => {
           </div>
         ) : (
           <>
-            <Link href={`/profile/${user.id || (user as { _id?: string })._id || user.email}`} className="flex gap-3 items-center group">
-              <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-primary-500 to-purple-500 group-hover:scale-105 transition-transform duration-300">
+            <Link
+              href={`/profile/${(user as { username?: string }).username || user.id || (user as { _id?: string })._id}`}
+              className="flex gap-3 items-center group"
+            >
+              <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-[#7928CA] to-[#FF0080] group-hover:scale-105 transition-transform duration-300">
                 <Image
                   src={user.image || "/assets/icons/profile-placeholder.svg"}
                   alt="profile"
                   width={56}
                   height={56}
-                  className="h-14 w-14 rounded-full object-cover border-2 border-dark-2"
+                  className="h-14 w-14 rounded-full object-cover border-2 border-dark-1"
                 />
               </div>
               <div className="flex flex-col">
-                <p className="body-bold group-hover:text-primary-500 transition-colors">{user.name}</p>
-                <p className="small-regular text-light-3">@{(user as { username?: string }).username || user.name?.split(' ')[0]}</p>
+                <p className="body-bold group-hover:text-primary-500 transition-colors uppercase tracking-wider">{user.name}</p>
+                <p className="small-regular text-light-3">@{(user as { username?: string }).username || "aura_user"}</p>
               </div>
             </Link>
             {/* Notification Bell in Sidebar */}
-            <div className="mt-4 flex justify-center backdrop-blur-md bg-white/5 rounded-full p-2">
+            <div className="mt-4 flex justify-center backdrop-blur-md bg-white/5 rounded-2xl p-2 border border-white/10">
               <NotificationBell />
             </div>
           </>
@@ -82,7 +85,7 @@ const LeftSidebar = () => {
             return (
               <li
                 key={link.label}
-                className={`leftsidebar-link group ${isActive && "bg-primary-500 shadow-glow"
+                className={`leftsidebar-link group hover:bg-white/5 hover:backdrop-blur-sm transition-all duration-300 rounded-2xl ${isActive && "bg-gradient-to-r from-primary-500 to-purple-500 shadow-glow hover:bg-white/5"
                   }`}>
                 <Link
                   href={link.route}
@@ -92,7 +95,7 @@ const LeftSidebar = () => {
                     alt={link.label}
                     width={24}
                     height={24}
-                    className={`group-hover:scale-110 transition-transform ${isActive && "invert-white"
+                    className={`group-hover:scale-110 transition-transform duration-300 ${isActive && "invert-white drop-shadow-md"
                       }`}
                   />
                   {link.label}

@@ -11,8 +11,8 @@ export default function AuthLayout({
                 {children}
             </section>
             <Image
-                src="/assets/images/side-img.svg"
-                alt="logo"
+                src="/assets/images/aura-side-img.png"
+                alt="branding"
                 width={700}
                 height={1000}
                 className="hidden xl:block h-full w-1/2 object-cover bg-no-repeat flex-shrink-0"

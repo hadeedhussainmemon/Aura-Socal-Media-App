@@ -34,7 +34,7 @@ const NotificationBell = () => {
     if (!user) return;
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`/api/users/${user.id || (user as { _id?: string })._id}/notifications`);
+        const res = await fetch(`/api/notifications?userId=${user.id || (user as { _id?: string })._id}`);
         if (res.ok) {
           const data = await res.json();
           setNotifications(data || []);
