@@ -13,6 +13,7 @@ import LinkifiedText from "@/components/shared/LinkifiedText";
 import LikedPosts from "./LikedPosts";
 import PrivacySettings from "@/components/shared/PrivacySettings";
 import { PRIVACY_SETTINGS } from "@/constants";
+import { useToast } from "@/components/ui/use-toast";
 
 import { getUserByUsernameServer } from "@/lib/actions/user.actions";
 import { getUserPostsServer } from "@/lib/actions/post.actions";
@@ -40,6 +41,7 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
   const { data: session, status } = useSession();
   const user = session?.user;
   const router = useRouter();
+  const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'posts' | 'liked'>('posts');
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
@@ -160,7 +162,7 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
     if (navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(url);
-        alert("Profile URL copied to clipboard!");
+        toast({ title: "Copied!", description: "Profile URL copied to clipboard" });
         return; // Success!
       } catch (error) {
         console.error("Clipboard API failed:", error);
@@ -177,10 +179,10 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
       textArea.select();
       document.execCommand("copy");
       document.body.removeChild(textArea);
-      alert("Profile URL copied to clipboard!");
+      toast({ title: "Copied!", description: "Profile URL copied to clipboard" });
     } catch (error) {
       console.error("Legacy copy command failed:", error);
-      alert("Could not copy URL. Please copy it manually.");
+      toast({ title: "Failed to copy", description: "Could not copy URL. Please copy it manually.", variant: "destructive" });
     }
   };
   // ==================================================================

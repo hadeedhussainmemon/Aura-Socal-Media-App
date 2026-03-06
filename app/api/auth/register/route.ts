@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { connectToDatabase } from "@/lib/mongoose";
 import User from "@/lib/models/user.model";
-import Otp from "@/lib/models/otp.model";
+// import Otp from "@/lib/models/otp.model"; // Re-enable when OTP flow is active
 
 export async function POST(req: Request) {
     try {

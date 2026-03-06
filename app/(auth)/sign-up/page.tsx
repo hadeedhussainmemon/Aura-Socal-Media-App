@@ -35,7 +35,7 @@ const SignupForm = () => {
   const [signUpError, setSignUpError] = useState<string | null>(null);
 
   // Store user data between steps
-  const [userData, setUserData] = useState<InitialStepValues | null>(null);
+  // const [userData, setUserData] = useState<InitialStepValues | null>(null);
   const [otpValue, setOtpValue] = useState("");
 
   const form = useForm<InitialStepValues>({

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { IPost } from "@/types";
+import { useToast } from "@/components/ui/use-toast";
 
 type ShareModalProps = {
   isOpen: boolean;
@@ -11,6 +12,7 @@ type ShareModalProps = {
 
 const ShareModal = ({ isOpen, onClose, post, isProfile = false }: ShareModalProps) => {
   const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
 
 
   const postUrl = isProfile
@@ -58,6 +60,7 @@ const ShareModal = ({ isOpen, onClose, post, isProfile = false }: ShareModalProp
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(postUrl);
         setCopied(true);
+        toast({ title: "Copied!", description: "Link copied to clipboard" });
         setTimeout(() => setCopied(false), 2000);
       } else {
         // Fallback for iOS Safari and older browsers
@@ -69,10 +72,12 @@ const ShareModal = ({ isOpen, onClose, post, isProfile = false }: ShareModalProp
         document.execCommand('copy');
         document.body.removeChild(tempInput);
         setCopied(true);
+        toast({ title: "Copied!", description: "Link copied to clipboard" });
         setTimeout(() => setCopied(false), 2000);
       }
     } catch (error) {
       console.error('Failed to copy link:', error);
+      toast({ title: "Failed to copy", description: "Could not copy URL.", variant: "destructive" });
     }
   };
 

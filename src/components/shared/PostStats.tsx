@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 
 import { checkIsLiked } from "@/lib/utils";
 import {
@@ -22,7 +21,6 @@ type PostStatsProps = {
 };
 
 const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostStatsProps) => {
-  const pathname = usePathname();
 
   // Handle MongoDB post structure
   const likesList = post.likes ? post.likes.map((like: string | IUser) => {

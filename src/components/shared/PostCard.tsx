@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { multiFormatDateString } from "@/lib/utils";
 import { useSession } from "next-auth/react";
-import { useDeletePost } from "@/lib/react-query/queriesAndMutations";
+import { useDeletePost, useLikePost } from "@/lib/react-query/queriesAndMutations";
 import { Button } from "@/components/ui/button";
 import PostStats from "./PostStats";
 import QuickComment from "./QuickComment";
@@ -20,9 +20,11 @@ const PostCard = ({ post }: PostCardProps) => {
   const { data: session } = useSession();
   const user = session?.user;
   const [showComments, setShowComments] = useState(false);
+  const [showHeartOverlay, setShowHeartOverlay] = useState(false);
   const { mutate: deletePost } = useDeletePost();
+  const { mutate: likePost } = useLikePost();
 
-  if (!post.creator) return;
+  if (!post.creator) return null;
 
   const handleCommentClick = () => {
     setShowComments(!showComments);
@@ -30,8 +32,19 @@ const PostCard = ({ post }: PostCardProps) => {
 
   const handleDeletePost = () => {
     if (confirm("Are you sure you want to delete this post?")) {
-      deletePost({ postId: post.id });
+      deletePost({ postId: post.id || post._id as string });
     }
+  };
+
+  const handleDoubleTap = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user?.id) return;
+
+    setShowHeartOverlay(true);
+    setTimeout(() => setShowHeartOverlay(false), 1000); // Hide after 1s
+
+    // Add like
+    likePost({ postId: post._id || post.id as string, userId: user.id });
   };
 
   return (
@@ -90,16 +103,34 @@ const PostCard = ({ post }: PostCardProps) => {
         </div>
       </div>
 
-      {/* Full-width Image */}
-      <Link href={`/posts/${post._id}`} className="block w-full">
+      {/* Full-width Image with Double Tap */}
+      <div
+        className="relative block w-full cursor-pointer"
+        onDoubleClick={handleDoubleTap}
+      >
         <Image
           src={post.imageUrl || "/assets/icons/profile-placeholder.svg"}
           alt="post image"
           width={600}
           height={600}
-          className="w-full object-cover sm:rounded-none max-h-[600px]"
+          className="w-full object-cover sm:rounded-none max-h-[600px] select-none"
+          priority
         />
-      </Link>
+
+        {/* Heart Overlay Animation */}
+        {showHeartOverlay && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <Image
+              src="/assets/icons/like.svg"
+              alt="liked"
+              width={100}
+              height={100}
+              className="drop-shadow-2xl animate-in zoom-in duration-300 fade-in fade-out fill-mode-forwards opacity-0 invert-white scale-150"
+              style={{ animation: 'heartBurst 1s ease-out forwards' }}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Action Bar (Like/Comment/Share/Save) */}
       <div className="px-3 sm:px-4 pt-3 pb-2">

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import Loader from "@/components/shared/Loader";
 import PostCard from "@/components/shared/PostCard";
 import UserCard from "@/components/shared/UserCard";
-import { getRecentPostsServer } from "@/lib/actions/post.actions";
-import { getAllUsersServer } from "@/lib/actions/user.actions";
+import PostSkeleton from "@/components/shared/PostSkeleton";
+import UserSkeleton from "@/components/shared/UserSkeleton";
+import { useGetPosts, useGetUsers } from "@/lib/react-query/queriesAndMutations";
+import { useInView } from "react-intersection-observer";
 
 import { IPost, IUser } from "@/types";
 
@@ -14,35 +15,32 @@ const Home = () => {
   const { data: session } = useSession();
   const user = session?.user;
 
-  const [posts, setPosts] = useState<IPost[]>([]);
-  const [creators, setCreators] = useState<IUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
+  const { ref, inView } = useInView();
+
+  const {
+    data: postsData,
+    isLoading: isPostsLoading,
+    isError: isPostsError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useGetPosts();
+
+  const { data: creatorsData, isLoading: isCreatorsLoading, isError: isCreatorsError } = useGetUsers(10);
+
+  const posts = postsData?.pages.flatMap((page) => page?.documents || []) || [];
+  const creators = creatorsData?.documents || [];
 
   useEffect(() => {
-    const fetchHomeData = async () => {
-      try {
-        setIsLoading(true);
-        const [recentPosts, allUsers] = await Promise.all([
-          getRecentPostsServer(),
-          getAllUsersServer(10)
-        ]);
-
-        setPosts(recentPosts || []);
-        setCreators(allUsers || []);
-      } catch (error) {
-        console.error("Failed to fetch home data:", error);
-        setIsError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHomeData();
-  }, []);
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
 
   // Filter out current user from creators list
   const otherUsers = creators?.filter((creator: IUser) => creator._id !== user?.id) || [];
+
+  const isError = isPostsError || isCreatorsError;
 
   if (isError) {
     return (
@@ -62,13 +60,19 @@ const Home = () => {
       <div className="home-container">
         <div className="home-posts">
           <h2 className="h3-bold md:h2-bold text-left w-full aura-text-gradient">Following Feed</h2>
-          {isLoading && !posts.length ? (
-            <Loader />
+          {isPostsLoading && !posts.length ? (
+            <ul className="flex flex-col flex-1 gap-9 w-full">
+              {[...Array(3)].map((_, i) => (
+                <li key={`skeleton-${i}`} className="flex justify-center w-full">
+                  <PostSkeleton />
+                </li>
+              ))}
+            </ul>
           ) : (
             <ul className="flex flex-col flex-1 gap-9 w-full ">
               {posts && posts.length > 0 ? (
                 posts.map((post: IPost) => (
-                  <li key={post._id} className="flex justify-center w-full">
+                  <li key={post._id || post.id} className="flex justify-center w-full">
                     <PostCard post={post} />
                   </li>
                 ))
@@ -108,14 +112,26 @@ const Home = () => {
                   </div>
                 </div>
               )}
+              {isFetchingNextPage && (
+                <div className="flex justify-center w-full mt-4">
+                  <PostSkeleton />
+                </div>
+              )}
+              {hasNextPage && <div ref={ref} className="h-10 invisible" />}
             </ul>
           )}
         </div>
       </div>
       <div className="home-creators">
         <h3 className="h3-bold aura-text-gradient">People You Might Know</h3>
-        {isLoading && !creators.length ? (
-          <Loader />
+        {isCreatorsLoading && !creators.length ? (
+          <ul className="grid 2xl:grid-cols-2 gap-6 w-full">
+            {[...Array(4)].map((_, i) => (
+              <li key={`user-skeleton-${i}`}>
+                <UserSkeleton />
+              </li>
+            ))}
+          </ul>
         ) : (
           <ul className="grid 2xl:grid-cols-2 gap-6">
             {otherUsers && otherUsers.length > 0 ? (
