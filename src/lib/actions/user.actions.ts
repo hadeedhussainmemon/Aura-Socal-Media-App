@@ -1,18 +1,31 @@
-"use server";
-
+import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongoose";
 import User from "@/lib/models/user.model";
 import Post from "@/lib/models/post.model";
 
-export async function getUserByIdServer(userId: string) {
+export async function getUserByIdServer(userIdOrUsername: string) {
     try {
+        if (!userIdOrUsername) return null;
+
         await connectToDatabase();
 
-        const user = await User.findById(userId).select('-password');
+        // 1. Try finding by ID first if it's a valid ObjectId
+        if (mongoose.Types.ObjectId.isValid(userIdOrUsername)) {
+            const userById = await User.findById(userIdOrUsername).select('-password');
+            if (userById) return JSON.parse(JSON.stringify(userById));
+        }
 
-        return JSON.parse(JSON.stringify(user));
+        // 2. Fallback: Try finding by username (Case-Insensitive)
+        // Using regex for case-insensitive match: ^username$
+        const userByUsername = await User.findOne({
+            username: { $regex: new RegExp(`^${userIdOrUsername}$`, 'i') }
+        }).select('-password');
+
+        if (userByUsername) return JSON.parse(JSON.stringify(userByUsername));
+
+        return null;
     } catch (error) {
-        console.error("Failed to fetch user", error);
+        console.error("Failed to fetch user:", error);
         return null;
     }
 }

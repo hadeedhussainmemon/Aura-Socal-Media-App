@@ -22,6 +22,15 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
+        // Vercel Serverless Functions do not support Socket.io
+        // We disable it on production/Vercel hostnames to avoid console errors
+        const isVercel = window.location.hostname.includes("vercel.app");
+
+        if (isVercel) {
+            console.log("ℹ️ Real-time messaging (Socket.io) is disabled on Vercel deployments.");
+            return;
+        }
+
         // We point to the Pages API route handler
         const socketInstance = ClientIO(process.env.NEXT_PUBLIC_SITE_URL || window.location.origin, {
             path: "/api/socket/io",

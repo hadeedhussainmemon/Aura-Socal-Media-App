@@ -42,7 +42,7 @@ module.exports = {
         '465': '465px',
       },
       fontFamily: {
-        inter: ['Inter', 'sans-serif'],
+        inter: ['var(--font-inter)', 'Inter', 'sans-serif'],
       },
       backgroundImage: {
         'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',

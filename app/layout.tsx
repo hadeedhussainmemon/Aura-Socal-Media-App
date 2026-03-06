@@ -7,7 +7,10 @@ import { NotificationProvider } from '../src/context/NotificationContext'
 import NotificationManager from '../src/components/NotificationManager'
 import { Toaster } from '../src/components/ui/toaster'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
 
 export const viewport: Viewport = {
   themeColor: '#7928CA',
@@ -55,7 +58,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.variable} font-inter`}>
         <QueryProvider>
           <AuthProvider>
             <NotificationProvider>

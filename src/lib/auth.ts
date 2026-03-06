@@ -1,9 +1,9 @@
-import { NextAuthConfig, Session, User as NextAuthUser } from "next-auth";
+import { NextAuthConfig, Session, User } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { connectToDatabase } from "@/lib/mongoose";
-import User from "@/lib/models/user.model";
+import UserProfile from "@/lib/models/user.model";
 
 export const authOptions: NextAuthConfig = {
     providers: [
@@ -20,7 +20,7 @@ export const authOptions: NextAuthConfig = {
 
                 await connectToDatabase();
 
-                const user = await User.findOne({ email: credentials.email });
+                const user = await UserProfile.findOne({ email: credentials.email });
 
                 if (!user || !user.password) {
                     throw new Error("Invalid credentials");
@@ -46,9 +46,9 @@ export const authOptions: NextAuthConfig = {
         strategy: "jwt",
     },
     callbacks: {
-        async jwt({ token, user }: { token: JWT; user?: NextAuthUser }) {
+        async jwt({ token, user }: { token: JWT; user?: User }) {
             if (user) {
-                token.id = user.id;
+                token.id = user.id || user._id || "";
                 token.username = user.username;
             }
             return token;

@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { useGetConversations } from "@/lib/react-query/queriesAndMutations";
 import Loader from "./Loader";
-import { IConversation, IUser, IMessage } from "@/types";
-import { useSocket } from "./SocketProvider";
-import { useQueryClient } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
+import { IConversation, IUser } from "@/types";
 
 type ChatListProps = {
     activeConversationId?: string;
@@ -19,39 +15,6 @@ const ChatList = ({ activeConversationId }: ChatListProps) => {
     const { data: session } = useSession();
     const userId = session?.user?.id || (session?.user as { _id?: string })?._id || "";
     const { data: conversations, isLoading } = useGetConversations(userId);
-    const { socket } = useSocket();
-    const queryClient = useQueryClient();
-
-    // Listen for real-time updates to conversation previews
-    useEffect(() => {
-        if (socket) {
-            const handleMessage = (newMessage: IMessage) => {
-                // Update the conversations list to show the new last message
-                queryClient.setQueryData(
-                    [QUERY_KEYS.GET_CONVERSATIONS, userId],
-                    (oldData: IConversation[] | undefined) => {
-                        if (!oldData) return [];
-                        return oldData.map((conv) => {
-                            if (conv._id === newMessage.conversation) {
-                                return {
-                                    ...conv,
-                                    lastMessageText: newMessage.content,
-                                    updatedAt: newMessage.createdAt,
-                                };
-                            }
-                            return conv;
-                        }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-                    }
-                );
-            };
-
-            socket.on("receive-message", handleMessage);
-
-            return () => {
-                socket.off("receive-message", handleMessage);
-            };
-        }
-    }, [socket, userId, queryClient]);
 
     if (isLoading) {
         return (
