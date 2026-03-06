@@ -11,26 +11,29 @@ type SuggestionRowProps = {
 };
 
 const SuggestionRow = ({ user }: SuggestionRowProps) => {
-    const { data: isCurrentlyFollowing, isLoading: isFollowingLoading } = useIsFollowing(user.id || user._id || "");
+    const userId = user?.id || user?._id || "";
+    const { data: isCurrentlyFollowing, isLoading: isFollowingLoading } = useIsFollowing(userId);
     const followMutation = useFollowUser();
     const unfollowMutation = useUnfollowUser();
+
+    if (!user) return null;
 
     const handleFollowToggle = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
         if (isCurrentlyFollowing) {
-            unfollowMutation.mutate(user.id);
+            unfollowMutation.mutate(userId);
         } else {
-            followMutation.mutate(user.id);
+            followMutation.mutate(userId);
         }
     };
 
     return (
         <div className="suggestion-row group">
-            <Link href={`/profile/${user.username}`} className="flex items-center gap-3 flex-1 overflow-hidden">
+            <Link href={`/profile/${user.username || user._id}`} className="flex items-center gap-3 flex-1 overflow-hidden">
                 <Image
-                    src={user?.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                    src={user?.imageUrl || user?.image_url || "/assets/icons/profile-placeholder.svg"}
                     alt="creator"
                     width={40}
                     height={40}
@@ -38,10 +41,10 @@ const SuggestionRow = ({ user }: SuggestionRowProps) => {
                 />
                 <div className="flex flex-col min-w-0">
                     <p className="small-semibold text-light-1 truncate group-hover:text-primary-500 transition-colors">
-                        {user.username}
+                        {user.username || "user"}
                     </p>
                     <p className="tiny-medium text-light-3 truncate">
-                        {user.name}
+                        {user.name || "Aura User"}
                     </p>
                 </div>
             </Link>

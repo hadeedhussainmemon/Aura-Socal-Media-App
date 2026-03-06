@@ -38,7 +38,7 @@ const Home = () => {
   }, [inView, hasNextPage, fetchNextPage]);
 
   // Filter out current user from creators list
-  const otherUsers = creators?.filter((creator: IUser) => creator._id !== user?.id) || [];
+  const otherUsers = creators?.filter((creator: IUser) => creator && (creator._id || creator.id) !== user?.id) || [];
 
   const isError = isPostsError || isCreatorsError;
 

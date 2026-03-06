@@ -64,6 +64,15 @@ const PostDetailsClient = ({ post }: PostDetailsClientProps) => {
         }
     };
 
+    // Safety check for the creator object to prevent runtime crashes
+    if (!post?.creator) {
+        return (
+            <div className="flex-center w-full h-full p-20">
+                <p className="text-light-4">Post creator information is unavailable.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="post_details-container flex flex-col items-center">
             <div className="hidden md:flex max-w-5xl w-full mb-4">
@@ -98,10 +107,10 @@ const PostDetailsClient = ({ post }: PostDetailsClientProps) => {
                     {/* Header */}
                     <div className="flex-between w-full p-5 border-b border-white/5">
                         <Link
-                            href={`/profile/${post?.creator.username || post?.creator._id}`}
+                            href={`/profile/${post.creator.username || post.creator._id}`}
                             className="flex items-center gap-3 group">
                             <Image
-                                src={post?.creator.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                                src={post.creator.imageUrl || "/assets/icons/profile-placeholder.svg"}
                                 alt="creator"
                                 width={40}
                                 height={40}
@@ -109,7 +118,7 @@ const PostDetailsClient = ({ post }: PostDetailsClientProps) => {
                             />
                             <div className="flex flex-col">
                                 <p className="base-medium text-light-1 group-hover:text-primary-500 transition-colors">
-                                    {post?.creator.name}
+                                    {post.creator.name}
                                 </p>
                                 <div className="flex items-center gap-2 text-light-3 text-[10px] uppercase font-bold tracking-tighter">
                                     <p>{multiFormatDateString(post?.createdAt)}</p>
@@ -122,7 +131,7 @@ const PostDetailsClient = ({ post }: PostDetailsClientProps) => {
                         <div className="flex-center gap-4">
                             <Link
                                 href={`/update-post/${post?._id}`}
-                                className={`${user?.id !== post?.creator._id && "hidden"} hover:scale-110 transition-transform`}>
+                                className={`${user?.id !== post.creator._id && "hidden"} hover:scale-110 transition-transform`}>
                                 <Image src={"/assets/icons/edit.svg"} alt="edit" width={22} height={22} className="opacity-70 invert-white" />
                             </Link>
 
@@ -130,7 +139,7 @@ const PostDetailsClient = ({ post }: PostDetailsClientProps) => {
                                 onClick={handleDeletePost}
                                 variant="ghost"
                                 disabled={isDeleting}
-                                className={`p-0 h-auto hover:bg-transparent ${user?.id !== post?.creator._id && "hidden"}`}>
+                                className={`p-0 h-auto hover:bg-transparent ${user?.id !== post.creator._id && "hidden"}`}>
                                 <Image src={"/assets/icons/delete.svg"} alt="delete" width={22} height={22} className="opacity-70 hover:opacity-100 transition-opacity" />
                             </Button>
                         </div>
@@ -141,8 +150,8 @@ const PostDetailsClient = ({ post }: PostDetailsClientProps) => {
                         {/* Caption */}
                         <div className="flex flex-col gap-2">
                             <div className="flex items-baseline gap-2">
-                                <Link href={`/profile/${post?.creator.username}`} className="base-bold text-light-1 hover:text-primary-500 transition-colors">
-                                    {post?.creator.name}
+                                <Link href={`/profile/${post.creator.username}`} className="base-bold text-light-1 hover:text-primary-500 transition-colors">
+                                    {post.creator.name}
                                 </Link>
                                 <p className="small-medium text-light-2 leading-relaxed">{post?.caption}</p>
                             </div>
@@ -174,7 +183,7 @@ const PostDetailsClient = ({ post }: PostDetailsClientProps) => {
             <div className="w-full max-w-5xl mt-16 px-4">
                 <div className="flex items-center gap-3 mb-8">
                     <hr className="flex-1 border-white/10" />
-                    <h3 className="base-bold md:h3-bold text-light-3">More from {post?.creator.name}</h3>
+                    <h3 className="base-bold md:h3-bold text-light-3">More from {post.creator.name}</h3>
                     <hr className="flex-1 border-white/10" />
                 </div>
 
