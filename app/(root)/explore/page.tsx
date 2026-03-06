@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useInView } from "react-intersection-observer";
+import { useState, useEffect } from "react";
 
 import useDebounce from "@/hooks/useDebounce";
 import { getRecentPostsServer, searchPostsServer } from "@/lib/actions/post.actions";
@@ -29,7 +28,6 @@ const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultProps) =
 };
 
 const Explore = () => {
-  const { ref } = useInView();
 
   const [posts, setPosts] = useState<IPost[]>([]);
   const [searchedPosts, setSearchedPosts] = useState<IPost[]>([]);
