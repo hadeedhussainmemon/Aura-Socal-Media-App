@@ -10,6 +10,7 @@ import { Toaster } from '../src/components/ui/toaster'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://aura-hh.vercel.app'),
   title: 'Aura | Connect with your vibe',
   description: 'A modern social media application powered by Next.js, MongoDB, and NextAuth',
   icons: {
