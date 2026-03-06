@@ -290,9 +290,10 @@ export async function sendPasswordResetEmail(email: string) {
         // In a real app, you'd generate a JWT token and send the email here
         // For now, we return true to indicate the "process" succeeded for valid accounts
         return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("❌ Error in sendPasswordResetEmail:", error);
-        throw new Error(error.message || "Something went wrong. Please try again later.");
+        const errorMessage = error instanceof Error ? error.message : "Something went wrong. Please try again later.";
+        throw new Error(errorMessage);
     }
 }
 

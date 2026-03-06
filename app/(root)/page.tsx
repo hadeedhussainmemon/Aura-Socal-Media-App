@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import PostCard from "@/components/shared/PostCard";
-import UserCard from "@/components/shared/UserCard";
+import SuggestionRow from "@/components/shared/SuggestionRow";
 import PostSkeleton from "@/components/shared/PostSkeleton";
-import UserSkeleton from "@/components/shared/UserSkeleton";
 import { useGetPosts, useGetUsers } from "@/lib/react-query/queriesAndMutations";
 import { useInView } from "react-intersection-observer";
 

@@ -8,7 +8,6 @@ import { useSession } from "next-auth/react";
 
 import { multiFormatDateString } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import Loader from "@/components/shared/Loader";
 import PostStats from "@/components/shared/PostStats";
 import GridPostList from "@/components/shared/GridPostList";
 import Comments from "@/components/shared/Comments";
@@ -160,7 +159,7 @@ const PostDetailsClient = ({ post }: PostDetailsClientProps) => {
 
                         {/* Comments Component */}
                         <div className="flex-1">
-                            <Comments postId={post._id} />
+                            <Comments postId={post._id || post.id} />
                         </div>
                     </div>
 
