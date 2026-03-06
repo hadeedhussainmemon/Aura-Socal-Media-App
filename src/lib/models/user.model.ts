@@ -31,6 +31,11 @@ const UserSchema = new mongoose.Schema({
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     savedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
     role: { type: String, default: 'user', enum: ['user', 'admin'] },
+    privacy_setting: {
+        type: String,
+        default: 'public',
+        enum: ['public', 'private', 'followers_only']
+    },
     isActive: { type: Boolean, default: true },
     isDeactivated: { type: Boolean, default: false },
     lastActive: { type: Date, default: Date.now },

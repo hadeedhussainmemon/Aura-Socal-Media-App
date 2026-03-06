@@ -12,13 +12,19 @@ import GridPostList from "@/components/shared/GridPostList";
 import LinkifiedText from "@/components/shared/LinkifiedText";
 import LikedPosts from "./LikedPosts";
 import PrivacySettings from "@/components/shared/PrivacySettings";
-import { PRIVACY_SETTINGS } from "@/constants";
 import { useToast } from "@/components/ui/use-toast";
 
-import { getUserByUsernameServer } from "@/lib/actions/user.actions";
-import { getUserPostsServer } from "@/lib/actions/post.actions";
+import {
+  useGetUserById,
+  useGetUserPosts,
+  useFollowUser,
+  useUnfollowUser,
+  useIsFollowing,
+  useGetFollowersCount,
+  useGetFollowingCount
+} from "@/lib/react-query/queriesAndMutations";
 
-import { IPost, IUser } from "@/types";
+
 
 interface StabBlockProps {
   value: string | number;
@@ -37,9 +43,9 @@ type ProfileWrapperProps = {
 };
 
 const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
-  const { id: username } = React.use(params);
+  const { id: usernameOrId } = React.use(params);
   const { data: session, status } = useSession();
-  const user = session?.user;
+  const loggedInUser = session?.user;
   const router = useRouter();
   const { toast } = useToast();
 
@@ -47,47 +53,22 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
 
-  const [currentUser, setCurrentUser] = useState<IUser | null>(null);
-  const [userPosts, setUserPosts] = useState<IPost[]>([]);
-  const [isUserLoading, setIsUserLoading] = useState(true);
-  const [userError, setUserError] = useState(false);
+  // First, get the user by ID/Username
+  // Note: The param 'id' is actually the username in some routes, or ID in others.
+  // Our system usually uses username for profile routes.
+  const { data: profileUser, isLoading: isUserLoading, isError: userError } = useGetUserById(usernameOrId);
 
-  const [followersCount, setFollowersCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
-  const [isCurrentlyFollowing, setIsCurrentlyFollowing] = useState(false);
+  const { data: followersCount = 0 } = useGetFollowersCount(profileUser?._id || profileUser?.id || "");
+  const { data: followingCount = 0 } = useGetFollowingCount(profileUser?._id || profileUser?.id || "");
+  const { data: isFollowingFlag } = useIsFollowing(profileUser?._id || profileUser?.id || "");
 
-  const [isFollowingLoading, setIsFollowingLoading] = useState(false);
+  const { data: userPosts } = useGetUserPosts(profileUser?._id || profileUser?.id || "");
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!username) return;
-      try {
-        setIsUserLoading(true);
-        // FETCH BY USERNAME instead of ID
-        const data = await getUserByUsernameServer(username);
-        setCurrentUser(data);
+  const { mutate: followUser, isPending: isFollowingLoading } = useFollowUser();
+  const { mutate: unfollowUser, isPending: isUnfollowingLoading } = useUnfollowUser();
 
-        if (data) {
-          setFollowersCount(data.followers?.length || 0);
-          setFollowingCount(data.following?.length || 0);
-
-          if (user?.id) {
-            setIsCurrentlyFollowing(data.followers?.includes(user.id) || false);
-          }
-
-          // Fetch posts using internal ID from the fetched user
-          const posts = await getUserPostsServer(data._id || data.id);
-          setUserPosts(posts || []);
-        }
-      } catch (error) {
-        console.error(error);
-        setUserError(true);
-      } finally {
-        setIsUserLoading(false);
-      }
-    }
-    fetchUserData();
-  }, [username, user?.id]);
+  const isOwnProfile = loggedInUser?.id === profileUser?._id || loggedInUser?.id === profileUser?.id;
+  const canSeePosts = !profileUser?.privacy_setting || profileUser.privacy_setting === 'public' || isOwnProfile || isFollowingFlag;
 
   // Handle redirect for unauthenticated users
   useEffect(() => {
@@ -99,112 +80,55 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
   }, [status]);
 
   useEffect(() => {
-    if (redirectCountdown === null) return;
-
     if (redirectCountdown === 0) {
       router.push("/sign-in");
-      return;
     }
-
-    const timer = setTimeout(() => {
-      setRedirectCountdown((prev) => (prev !== null && prev > 0 ? prev - 1 : prev));
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    if (redirectCountdown !== null && redirectCountdown > 0) {
+      const timer = setTimeout(() => setRedirectCountdown(redirectCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
   }, [redirectCountdown, router]);
 
+  const handleFollowToggle = () => {
+    if (!profileUser?._id) return;
 
-  const handleFollowToggle = async () => {
-    if (!currentUser?._id || !user?.id) return;
-
-    try {
-      setIsFollowingLoading(true);
-      const res = await fetch(`/api/users/${currentUser._id}/follow`, { method: "POST" });
-      if (!res.ok) throw new Error("Failed to follow/unfollow");
-
-      // Optimistic UI update
-      if (isCurrentlyFollowing) {
-        setFollowersCount(prev => Math.max(0, prev - 1));
-        setIsCurrentlyFollowing(false);
-      } else {
-        setFollowersCount(prev => prev + 1);
-        setIsCurrentlyFollowing(true);
-      }
-    } catch (error) {
-      console.error("Error toggling follow status", error);
-    } finally {
-      setIsFollowingLoading(false);
+    if (isFollowingFlag) {
+      unfollowUser(profileUser._id);
+    } else {
+      followUser(profileUser._id);
     }
   };
 
-  // ==================================================================
-  // NEW ROBUST SHARE/COPY FUNCTION
-  // ==================================================================
   const handleShareProfile = async () => {
-    if (!currentUser) return;
+    if (!profileUser) return;
     const url = window.location.href;
 
-    // --- 1. Try Web Share API (Mobile, HTTPS only) ---
-    if (navigator.share && window.location.protocol === 'https:') {
+    if (navigator.share) {
       try {
         await navigator.share({
-          title: `${currentUser.name}'s Profile`,
-          text: `Check out ${currentUser.name}'s profile (@${currentUser.username})!`,
+          title: `${profileUser.name}'s Profile`,
+          text: `Check out ${profileUser.name}'s profile (@${profileUser.username})!`,
           url: url,
         });
-        return; // Success!
+        return;
       } catch (error) {
-        console.error("Web Share API failed:", error);
+        console.error("Web Share failed", error);
       }
     }
 
-    // --- 2. Fallback to Modern Clipboard API (If available) ---
-    if (navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(url);
-        toast({ title: "Copied!", description: "Profile URL copied to clipboard" });
-        return; // Success!
-      } catch (error) {
-        console.error("Clipboard API failed:", error);
-      }
-    }
-
-    // --- 3. Ultimate Fallback: Legacy execCommand (for HTTP/older browsers) ---
-    try {
-      const textArea = document.createElement("textarea");
-      textArea.value = url;
-      textArea.style.position = "absolute";
-      textArea.style.left = "-9999px";
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textArea);
-      toast({ title: "Copied!", description: "Profile URL copied to clipboard" });
-    } catch (error) {
-      console.error("Legacy copy command failed:", error);
-      toast({ title: "Failed to copy", description: "Could not copy URL. Please copy it manually.", variant: "destructive" });
-    }
+    await navigator.clipboard.writeText(url);
+    toast({ title: "Copied!", description: "Profile URL copied to clipboard" });
   };
-  // ==================================================================
 
-  const isOwnProfile = user?.id === currentUser?._id;
+  if (isUserLoading) return <div className="flex-center w-full h-full"><Loader /></div>;
+  if (userError || !profileUser) return <div className="flex-center w-full h-full"><p className="text-light-1">User not found</p></div>;
 
-  if (isUserLoading) {
-    return <div className="flex-center w-full h-full"><Loader /></div>;
-  }
-  if (userError) {
-    return <div className="flex-center w-full h-full"><p className="text-light-1">Error loading user profile</p></div>;
-  }
-  if (!currentUser) {
-    return <div className="flex-center w-full h-full"><p className="text-light-1">User not found</p></div>;
-  }
-
-  const ActionButtons = ({ className = "" }: { className?: string }) => (
-    <div className={`flex flex-wrap gap-2 ${className}`}>
+  const ActionButtons = () => (
+    <div className="flex flex-wrap gap-2">
       {isOwnProfile ? (
         <>
           <Link
-            href={`/update-profile/${currentUser._id}`}
+            href={`/update-profile/${profileUser._id}`}
             className="h-8 glass-card px-4 text-light-1 flex-center gap-2 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10"
           >
             <p className="flex whitespace-nowrap subtle-semibold">Edit Profile</p>
@@ -217,49 +141,46 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
             <p className="flex whitespace-nowrap subtle-semibold">Settings</p>
           </Button>
           <Button type="button" className="h-8 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10" onClick={handleShareProfile}>
-            <p className="flex whitespace-nowrap subtle-semibold">Share Profile</p>
+            <p className="flex whitespace-nowrap subtle-semibold">Share</p>
           </Button>
         </>
       ) : (
         <>
           <Button
             type="button"
-            className={`h-8 px-5 text-light-1 flex-center gap-2 rounded-lg transition-all duration-300 ${isCurrentlyFollowing
+            className={`h-8 px-5 text-light-1 flex-center gap-2 rounded-lg transition-all duration-300 ${isFollowingFlag
               ? "glass-card hover:bg-white/10 border border-white/10"
               : "bg-primary-500 hover:bg-primary-600 shadow-lg shadow-primary-500/20"
               }`}
             onClick={handleFollowToggle}
-            disabled={isFollowingLoading}
+            disabled={isFollowingLoading || isUnfollowingLoading}
           >
             <p className="flex whitespace-nowrap subtle-semibold">
-              {isFollowingLoading
-                ? "Loading..."
-                : isCurrentlyFollowing
-                  ? "Following"
-                  : "Follow"
-              }
+              {isFollowingFlag ? "Following" : "Follow"}
             </p>
           </Button>
+
           <Button
             type="button"
             className="h-8 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10"
             onClick={async () => {
-              if (!user?.id || !currentUser?._id) return;
-              try {
-                const { getOrCreateConversation } = await import("@/lib/actions/message.actions");
-                const conversation = await getOrCreateConversation(user.id, currentUser._id);
-                if (conversation) {
-                  router.push(`/messages/${conversation._id}`);
-                }
-              } catch (error) {
-                console.error("Failed to start conversation", error);
+              if (profileUser.privacy_setting === 'private' && !isFollowingFlag) {
+                toast({
+                  title: "Private Account",
+                  description: "You must follow this user to message them.",
+                  variant: "destructive"
+                });
+                return;
+              }
+
+              const { getOrCreateConversation } = await import("@/lib/actions/message.actions");
+              const conversation = await getOrCreateConversation(loggedInUser?.id || "", profileUser._id || "");
+              if (conversation) {
+                router.push(`/messages/${conversation._id}`);
               }
             }}
           >
             <p className="flex whitespace-nowrap subtle-semibold">Message</p>
-          </Button>
-          <Button type="button" className="h-8 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10" onClick={handleShareProfile}>
-            <p className="flex whitespace-nowrap subtle-semibold">Share Profile</p>
           </Button>
         </>
       )}
@@ -268,67 +189,52 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
 
   return (
     <div className="profile-container pb-20 md:pb-8 relative">
-      {/* Redirect Banner */}
       {redirectCountdown !== null && (
-        <div className="fixed top-0 left-0 w-full bg-gradient-to-r from-primary-500 to-purple-600 text-white text-center py-3 z-[100] font-medium shadow-lg backdrop-blur-md bg-opacity-90 animate-in slide-in-from-top duration-500">
-          Sign in to interact with @{currentUser.username}. Redirecting to login in {redirectCountdown}s...
+        <div className="fixed top-0 left-0 w-full bg-primary-500 text-white text-center py-2 z-[100] font-medium">
+          Sign in to interact. Redirecting in {redirectCountdown}s...
         </div>
       )}
-      <div className="flex flex-col w-full max-w-5xl glass-morphism p-8 rounded-3xl border border-white/5 shadow-glass">
-        <div className="flex flex-row items-center gap-4 sm:gap-6 w-full">
-          <Image
-            src={currentUser.imageUrl || "/assets/icons/profile-placeholder.svg"}
-            alt="profile"
-            width={112}
-            height={112}
-            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full flex-shrink-0 object-cover"
-          />
+
+      <div className="flex flex-col w-full max-w-5xl glass-morphism p-8 rounded-3xl border border-white/5">
+        <div className="flex flex-row items-center gap-6 w-full">
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0">
+            <Image
+              src={profileUser.imageUrl || profileUser.image_url || "/assets/icons/profile-placeholder.svg"}
+              alt="profile"
+              fill
+              className="rounded-full object-cover border-2 border-primary-500/20"
+            />
+          </div>
           <div className="flex flex-col items-start w-full">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
-              <h1 className="text-xl sm:text-2xl font-light tracking-tight">
-                @{currentUser.username}
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-light-1">
+                @{profileUser.username || "user"}
               </h1>
               <ActionButtons />
             </div>
 
             <div className="flex gap-6 mt-4">
-              <StatBlock value={isUserLoading ? "..." : userPosts?.length || 0} label="posts" />
+              <StatBlock value={userPosts?.length || 0} label="posts" />
               <StatBlock value={followersCount} label="followers" />
               <StatBlock value={followingCount} label="following" />
             </div>
 
             <div className="mt-4">
-              <p className="base-semibold text-white">{currentUser.name}</p>
+              <p className="base-semibold text-white">{profileUser.name}</p>
               <LinkifiedText
-                text={currentUser.bio || ""}
-                className="text-sm text-left text-light-2 mt-1"
+                text={profileUser.bio || ""}
+                className="text-sm text-light-2 mt-1"
               />
             </div>
-
-            {/* Privacy indicator */}
-            {isOwnProfile && (
-              <div className="flex items-center gap-2 mt-2 py-1 px-2 bg-white/5 rounded-md border border-white/5">
-                <span className="text-[10px] text-light-3 uppercase tracking-wider font-bold">Account Privacy:</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs">
-                    {PRIVACY_SETTINGS.find(setting => setting.value === currentUser.privacy_setting)?.icon || "🌍"}
-                  </span>
-                  <span className="text-[10px] text-light-1 capitalize font-medium">
-                    {PRIVACY_SETTINGS.find(setting => setting.value === currentUser.privacy_setting)?.label || "Public"}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-
-        {/* Privacy Settings Section - Only for own profile */}
         {isOwnProfile && showPrivacySettings && (
-          <div className="w-full mt-4">
+          <div className="w-full mt-6 animate-in fade-in duration-300">
             <PrivacySettings
-              currentPrivacy={currentUser.privacy_setting || "public"}
-              userId={currentUser.id || currentUser._id || ""}
+              currentPrivacy={profileUser.privacy_setting || "public"}
+              userId={profileUser._id || profileUser.id || ""}
+              onClose={() => setShowPrivacySettings(false)}
             />
           </div>
         )}
@@ -340,13 +246,6 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
             onClick={() => setActiveTab('posts')}
             className={`profile-tab ${activeTab === 'posts' && "profile-tab-active"}`}
           >
-            <Image
-              src={"/assets/icons/posts.svg"}
-              alt="posts"
-              width={16}
-              height={16}
-              className={activeTab === 'posts' ? "invert-white" : "opacity-50"}
-            />
             <span className="uppercase tracking-widest text-[10px] font-bold">Posts</span>
           </button>
 
@@ -355,13 +254,6 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
               onClick={() => setActiveTab('liked')}
               className={`profile-tab ${activeTab === 'liked' && "profile-tab-active"}`}
             >
-              <Image
-                src={"/assets/icons/like.svg"}
-                alt="like"
-                width={16}
-                height={16}
-                className={activeTab === 'liked' ? "invert-white" : "opacity-50"}
-              />
               <span className="uppercase tracking-widest text-[10px] font-bold">Liked</span>
             </button>
           )}
@@ -369,10 +261,20 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
       </div>
 
       <div className="w-full max-w-5xl mt-4">
-        {activeTab === 'posts' ? (
+        {!canSeePosts ? (
+          <div className="flex flex-col items-center justify-center py-20 px-4 text-center glass-morphism rounded-3xl border border-white/5 mt-4">
+            <div className="w-16 h-16 rounded-full bg-dark-3 flex items-center justify-center mb-4">
+              <span className="text-2xl">🔒</span>
+            </div>
+            <h3 className="text-light-1 font-bold text-lg mb-2">This account is private</h3>
+            <p className="text-light-3 text-sm max-w-xs">
+              Follow @{profileUser.username} to see their posts and updates.
+            </p>
+          </div>
+        ) : activeTab === 'posts' ? (
           <GridPostList posts={userPosts || []} showUser={false} showComments={false} />
         ) : (
-          currentUser._id === user?.id && <LikedPosts />
+          <LikedPosts />
         )}
       </div>
     </div>

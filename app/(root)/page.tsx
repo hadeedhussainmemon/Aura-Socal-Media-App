@@ -10,6 +10,8 @@ import { useGetPosts, useGetUsers } from "@/lib/react-query/queriesAndMutations"
 import { useInView } from "react-intersection-observer";
 
 import { IPost, IUser } from "@/types";
+import MobileHeader from "@/components/shared/MobileHeader";
+import StoryList from "@/components/shared/StoryList";
 
 const Home = () => {
   const { data: session } = useSession();
@@ -56,10 +58,17 @@ const Home = () => {
   }
 
   return (
-    <div className="flex flex-row flex-1 w-full">
-      <div className="home-container">
+    <div className="flex flex-row flex-1 w-full relative">
+      <MobileHeader />
+
+      <div className="home-container pt-20 md:pt-0">
         <div className="home-posts">
-          <h2 className="h3-bold md:h2-bold text-left w-full aura-text-gradient">Following Feed</h2>
+          {/* Stories Section for Mobile */}
+          <div className="md:hidden w-full mb-6">
+            <StoryList />
+          </div>
+
+          <h2 className="h3-bold md:h2-bold text-left w-full aura-text-gradient mb-4">Following Feed</h2>
           {isPostsLoading && !posts.length ? (
             <ul className="flex flex-col flex-1 gap-9 w-full">
               {[...Array(3)].map((_, i) => (

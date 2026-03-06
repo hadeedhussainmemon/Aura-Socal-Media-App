@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import '../src/globals.css'
 import { QueryProvider } from '../src/lib/react-query/QueryProvider'
@@ -9,10 +9,24 @@ import { Toaster } from '../src/components/ui/toaster'
 
 const inter = Inter({ subsets: ['latin'] })
 
+export const viewport: Viewport = {
+  themeColor: '#7928CA',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://aura-hh.vercel.app'),
   title: 'Aura | Connect with your vibe',
   description: 'A modern social media application powered by Next.js, MongoDB, and NextAuth',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Aura',
+  },
   icons: {
     icon: '/favicon.ico',
     apple: '/assets/images/aura-logo.png',

@@ -278,11 +278,15 @@
 
   /* Left sidebar */
   .leftsidebar {
-    @apply hidden md:flex px-6 py-10 flex-col justify-between w-[270px] bg-dark-2/40 backdrop-blur-xl border-r border-white/5 h-screen sticky top-0;
+    @apply hidden md:flex px-6 py-10 flex-col justify-between w-[270px] bg-dark-2/40 backdrop-blur-xl border-r border-white/5 h-screen sticky top-0 transition-all duration-300;
+  }
+
+  .leftsidebar-minimized {
+    @apply w-[100px] px-4;
   }
 
   .leftsidebar-link {
-    @apply rounded-lg base-medium hover:bg-primary-500 transition;
+    @apply rounded-xl base-medium hover:bg-white/5 transition-all duration-300;
   }
 
   /* Post Card (Instagram Style) */

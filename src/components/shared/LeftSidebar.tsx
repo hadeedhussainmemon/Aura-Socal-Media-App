@@ -38,12 +38,14 @@ const LeftSidebar = () => {
     return true;
   });
 
+  const isMessagesPage = pathname.startsWith('/messages');
+
   return (
-    <nav className="leftsidebar glass-morphism shadow-glass">
+    <nav className={`leftsidebar glass-morphism shadow-glass ${isMessagesPage ? 'leftsidebar-minimized' : ''}`}>
       <div className="flex flex-col gap-10 h-full">
-        <Link href="/" className="px-3 mb-2 flex items-center group">
-          <div className="text-2xl font-black aura-text-gradient tracking-tighter group-hover:scale-105 transition-transform duration-300">
-            Aura
+        <Link href="/" className={`px-3 mb-2 flex items-center group ${isMessagesPage ? 'justify-center' : ''}`}>
+          <div className={`${isMessagesPage ? 'text-xl' : 'text-2xl'} font-black aura-text-gradient tracking-tighter group-hover:scale-105 transition-transform duration-300`}>
+            {isMessagesPage ? 'A' : 'Aura'}
           </div>
         </Link>
 
@@ -55,45 +57,47 @@ const LeftSidebar = () => {
               return (
                 <li
                   key={link.label}
-                  className={`leftsidebar-link group hover:bg-white/5 transition-all duration-300 rounded-xl ${isActive && "bg-white/5 text-primary-500"
+                  className={`leftsidebar-link group transition-all duration-300 ${isActive && "bg-white/5 text-primary-500"
                     }`}>
                   <Link
                     href={link.route}
-                    className="flex gap-4 items-center p-3">
+                    className={`flex gap-4 items-center p-3 ${isMessagesPage ? 'justify-center' : ''}`}>
                     <Image
                       src={link.imgURL}
                       alt={link.label}
-                      width={22}
-                      height={22}
-                      className={`group-hover:scale-110 transition-transform duration-300 ${isActive ? "aura-gradient rounded-sm p-0.5 invert-white" : "opacity-70 group-hover:opacity-100"
+                      width={24}
+                      height={24}
+                      className={`group-hover:scale-110 transition-transform duration-300 ${isActive ? "aura-gradient rounded-sm p-1 invert-white" : "opacity-70 group-hover:opacity-100"
                         }`}
                     />
-                    <p className={`base-medium ${isActive ? "font-bold" : "font-medium"}`}>{link.label}</p>
+                    {!isMessagesPage && (
+                      <p className={`base-medium ${isActive ? "font-bold text-white" : "font-medium text-light-3"}`}>{link.label}</p>
+                    )}
                   </Link>
                 </li>
               );
             })}
 
             {/* Notifications Integrated into regular list */}
-            <li className={`leftsidebar-link group hover:bg-white/5 transition-all duration-300 rounded-xl ${pathname === '/notifications' && "bg-white/5 text-primary-500"}`}>
-              <div className="flex items-center w-full">
-                <NotificationBell inlineLabel="Notifications" />
+            <li className={`leftsidebar-link group transition-all duration-300 ${pathname === '/notifications' && "bg-white/5 text-primary-500"}`}>
+              <div className={`flex items-center w-full ${isMessagesPage ? 'justify-center' : ''}`}>
+                <NotificationBell inlineLabel={isMessagesPage ? undefined : "Notifications"} />
               </div>
             </li>
           </ul>
 
           <div className="flex flex-col gap-4">
             {isLoading || !user?.email ? (
-              <div className="h-10 px-3">
+              <div className="h-10 px-3 flex justify-center">
                 <Loader />
               </div>
             ) : (
               <Link
                 href={`/profile/${(user as { username?: string }).username || (user as { _id?: string })._id}`}
-                className={`flex gap-3 items-center p-3 rounded-xl transition-all duration-300 hover:bg-white/5 border border-transparent hover:border-white/5 ${pathname.includes(`/profile/${(user as { username?: string }).username}`) ? "bg-white/5 border-white/5" : ""
+                className={`flex gap-3 items-center p-3 rounded-xl transition-all duration-300 hover:bg-white/5 border border-transparent hover:border-white/5 ${isMessagesPage ? 'justify-center' : ''} ${pathname.includes(`/profile/${(user as { username?: string }).username}`) ? "bg-white/5 border-white/5" : ""
                   }`}
               >
-                <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-[#7928CA] to-[#FF0080]">
+                <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-[#7928CA] to-[#FF0080] shrink-0">
                   <Image
                     src={user.image || "/assets/icons/profile-placeholder.svg"}
                     alt="profile"
@@ -102,10 +106,12 @@ const LeftSidebar = () => {
                     className="h-7 w-7 rounded-full object-cover border border-dark-1"
                   />
                 </div>
-                <div className="flex flex-col overflow-hidden">
-                  <p className="small-semibold uppercase tracking-wider truncate max-w-[120px]">{user.name}</p>
-                  <p className="tiny-medium text-light-3 truncate max-w-[120px]">@{(user as { username?: string }).username || "aura_user"}</p>
-                </div>
+                {!isMessagesPage && (
+                  <div className="flex flex-col overflow-hidden">
+                    <p className="small-semibold uppercase tracking-wider truncate max-w-[120px]">{user.name}</p>
+                    <p className="tiny-medium text-light-3 truncate max-w-[120px]">@{(user as { username?: string }).username || "aura_user"}</p>
+                  </div>
+                )}
               </Link>
             )}
 
