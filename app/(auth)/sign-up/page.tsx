@@ -30,13 +30,8 @@ type InitialStepValues = z.infer<typeof INITIAL_STEP_SCHEMA>;
 
 const SignupForm = () => {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
   const [isPending, setIsPending] = useState(false);
   const [signUpError, setSignUpError] = useState<string | null>(null);
-
-  // Store user data between steps
-  // const [userData, setUserData] = useState<InitialStepValues | null>(null);
-  const [otpValue, setOtpValue] = useState("");
 
   const form = useForm<InitialStepValues>({
     resolver: zodResolver(INITIAL_STEP_SCHEMA),
@@ -116,6 +111,7 @@ const SignupForm = () => {
     }
   };
 
+  /* OTP verification handler — re-enable when domain is purchased
   const handleVerifyOtpAndRegister = async () => {
     if (!userData || otpValue.length !== 6) {
       setSignUpError("Please enter a valid 6-digit code.");
@@ -167,6 +163,7 @@ const SignupForm = () => {
       setIsPending(false);
     }
   };
+  */
 
   return (
     <div className="w-full max-w-[350px] flex flex-col items-center mt-12 sm:mt-0 sm:justify-center sm:min-h-full">
@@ -182,182 +179,106 @@ const SignupForm = () => {
         </div>
 
         <AnimatePresence mode="wait">
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <p className="text-light-3 text-base text-center font-semibold mb-6 px-4 leading-tight">
-                Sign up to see photos and videos from your friends.
-              </p>
+          <motion.div
+            key="step1"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="w-full"
+          >
+            <p className="text-light-3 text-base text-center font-semibold mb-6 px-4 leading-tight">
+              Sign up to see photos and videos from your friends.
+            </p>
 
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(handleSendOtp)}
-                  className="flex flex-col gap-[6px] w-full"
-                >
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input type="text" placeholder="Email address" className="insta-input" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input type="text" placeholder="Full Name" className="insta-input" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input type="text" placeholder="Username" className="insta-input" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input type="password" placeholder="Password" className="insta-input" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input type="password" placeholder="Confirm Password" className="insta-input" {...field} />
-                        </FormControl>
-                        <FormMessage className="text-[10px] sm:text-xs" />
-                      </FormItem>
-                    )}
-                  />
-
-                  {signUpError && (
-                    <div className="text-red-500 text-sm mt-2 text-center">
-                      {signUpError}
-                    </div>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(handleSendOtp)}
+                className="flex flex-col gap-[6px] w-full"
+              >
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="text" placeholder="Email address" className="insta-input" {...field} />
+                      </FormControl>
+                    </FormItem>
                   )}
-
-                  <div className="text-center text-xs text-light-3 mt-4 mb-4 px-2">
-                    People who use our service may have uploaded your contact information to Aura.
-                  </div>
-
-                  <div className="text-center text-xs text-light-3 mb-4 px-4">
-                    By signing up, you agree to our Terms, Privacy Policy and Cookies Policy.
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 rounded-lg transition-colors h-10 mt-2"
-                    disabled={isPending}
-                  >
-                    {isPending ? <Loader /> : "Sign Up"}
-                  </Button>
-                </form>
-              </Form>
-            </motion.div>
-          )}
-
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full flex flex-col items-center"
-            >
-              <div className="w-16 h-16 rounded-full border-2 border-primary-500/50 flex items-center justify-center mb-4">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-primary-500">
-                  <path d="M3 8L10.8906 13.2604C11.5624 13.7083 12.4376 13.7083 13.1094 13.2604L21 8M5 19H19C20.1046 19 21 18.1046 21 17V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V17C3 18.1046 3.89543 19 5 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-
-              <h2 className="text-base font-semibold text-center mb-2">
-                Enter Confirmation Code
-              </h2>
-              <p className="text-light-3 text-sm text-center mb-6 px-4">
-                Enter the 6-digit code we sent to <span className="text-light-1 font-medium">{userData?.email}</span>.
-              </p>
-
-              <div className="w-full">
-                <Input
-                  type="text"
-                  placeholder="Confirmation Code"
-                  className="insta-input text-center text-lg tracking-widest font-semibold h-12"
-                  maxLength={6}
-                  value={otpValue}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, ''); // Only allow numbers
-                    setOtpValue(val);
-                    setSignUpError(null);
-                  }}
+                />
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="text" placeholder="Full Name" className="insta-input" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="text" placeholder="Username" className="insta-input" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="password" placeholder="Password" className="insta-input" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input type="password" placeholder="Confirm Password" className="insta-input" {...field} />
+                      </FormControl>
+                      <FormMessage className="text-[10px] sm:text-xs" />
+                    </FormItem>
+                  )}
                 />
 
                 {signUpError && (
-                  <div className="text-red-500 text-sm mt-3 text-center">
+                  <div className="text-red-500 text-sm mt-2 text-center">
                     {signUpError}
                   </div>
                 )}
 
-                <Button
-                  onClick={handleVerifyOtpAndRegister}
-                  className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 rounded-lg transition-colors h-10 mt-4"
-                  disabled={isPending || otpValue.length !== 6}
-                >
-                  {isPending ? <Loader /> : "Next"}
-                </Button>
-
-                <div className="w-full text-center mt-4">
-                  <button
-                    onClick={() => {
-                      setStep(1);
-                      setOtpValue("");
-                      setSignUpError(null);
-                    }}
-                    className="text-primary-500 text-sm font-semibold hover:text-white transition-colors"
-                  >
-                    Go Back
-                  </button>
-                  <span className="mx-2 text-light-3">or</span>
-                  <button
-                    onClick={() => userData && handleSendOtp(userData)}
-                    disabled={isPending}
-                    className="text-primary-500 text-sm font-semibold hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    Resend Code
-                  </button>
+                <div className="text-center text-xs text-light-3 mt-4 mb-4 px-2">
+                  People who use our service may have uploaded your contact information to Aura.
                 </div>
-              </div>
-            </motion.div>
-          )}
+
+                <div className="text-center text-xs text-light-3 mb-4 px-4">
+                  By signing up, you agree to our Terms, Privacy Policy and Cookies Policy.
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 rounded-lg transition-colors h-10 mt-2"
+                  disabled={isPending}
+                >
+                  {isPending ? <Loader /> : "Sign Up"}
+                </Button>
+              </form>
+            </Form>
+          </motion.div>
         </AnimatePresence>
-      </div>
+      </div >
 
       <div className="w-full glass-morphism rounded-[3px] border border-white/10 shadow-glass py-5 mt-4 text-center">
         <p className="text-sm text-light-1">
@@ -369,7 +290,7 @@ const SignupForm = () => {
           </Link>
         </p>
       </div>
-    </div>
+    </div >
   );
 };
 

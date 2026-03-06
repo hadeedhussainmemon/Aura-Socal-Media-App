@@ -46,7 +46,8 @@ const Explore = () => {
     isError,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
+    refetch
   } = useGetPosts();
 
   const posts = postsData?.pages.flatMap((page) => page?.documents || []) || [];
@@ -108,7 +109,7 @@ const Explore = () => {
       <div className="flex-center flex-col w-full h-full gap-4">
         <p className="text-light-4">Failed to load posts</p>
         <button
-          onClick={fetchPosts}
+          onClick={() => refetch()}
           className="shad-button_primary"
         >
           Try Again

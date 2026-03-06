@@ -4,10 +4,10 @@ import Notification from "@/lib/models/notification.model";
 
 export async function PUT(
     _req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const notificationId = params.id;
+        const { id: notificationId } = await params;
         await connectToDatabase();
 
         const updatedNotification = await Notification.findByIdAndUpdate(

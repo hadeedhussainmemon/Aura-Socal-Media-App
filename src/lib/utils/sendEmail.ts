@@ -1,7 +1,18 @@
 import { Resend } from 'resend';
+// Lazy initialization of Resend to prevent build-time errors if API key is missing
+let resend: Resend | null = null;
 
-// Initialize Resend with the API key from environment variables
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+        console.warn("RESEND_API_KEY is missing. Email features will be disabled.");
+        return null;
+    }
+    if (!resend) {
+        resend = new Resend(apiKey);
+    }
+    return resend;
+};
 
 interface SendEmailOptions {
     email: string;
@@ -10,8 +21,14 @@ interface SendEmailOptions {
 }
 
 export const sendEmail = async (options: SendEmailOptions) => {
+    const client = getResend();
+    if (!client) {
+        console.error("Cannot send email: Resend client not initialized (missing API key)");
+        return null;
+    }
+
     try {
-        const data = await resend.emails.send({
+        const data = await client.emails.send({
             // By default, Resend requires a verified domain to send FROM.
             // When testing, you can send *from* an arbitrary name via the default testing domain
             // like 'onboarding@resend.dev', but it will only deliver TO the email address 

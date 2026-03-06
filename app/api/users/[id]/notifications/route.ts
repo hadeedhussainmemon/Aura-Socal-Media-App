@@ -4,10 +4,10 @@ import Notification from "@/lib/models/notification.model";
 
 export async function GET(
     _req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = params.id;
+        const { id: userId } = await params;
         await connectToDatabase();
 
         const notifications = await Notification.find({ userId })
