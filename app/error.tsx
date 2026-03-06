@@ -35,7 +35,7 @@ export default function Error({
 
                 <p className="text-light-3 text-lg mb-8 leading-relaxed">
                     We encountered a slight turbulence in the Aura field. Our engineers are
-                    enhancing your experience right now. Don't worry, your data is safe!
+                    enhancing your experience right now. Don&apos;t worry, your data is safe!
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

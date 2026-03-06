@@ -1057,7 +1057,6 @@ export const useGetMessages = (conversationId: string) => {
     queryKey: [QUERY_KEYS.GET_MESSAGES, conversationId],
     queryFn: () => getMessages(conversationId),
     enabled: !!conversationId,
-    refetchInterval: 5000, // Polling every 5 seconds for a "real-time" feel without WebSockets
   });
 };
 
@@ -1092,54 +1091,3 @@ export const useMarkMessageAsRead = () => {
 };
 
 
-// ============================================================
-// MESSAGE QUERIES AND MUTATIONS
-// ============================================================
-
-export const useGetConversations = (userId: string) => {
-  return useQuery({
-    queryKey: [QUERY_KEYS.GET_CONVERSATIONS, userId],
-    queryFn: () => getConversations(userId),
-    enabled: !!userId,
-    staleTime: 1000 * 60 * 2, // 2 minutes
-  });
-};
-
-export const useGetMessages = (conversationId: string) => {
-  return useQuery({
-    queryKey: [QUERY_KEYS.GET_MESSAGES, conversationId],
-    queryFn: () => getMessages(conversationId),
-    enabled: !!conversationId,
-    refetchInterval: 5000, // Polling every 5 seconds for a "real-time" feel without WebSockets
-  });
-};
-
-export const useSendMessage = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ senderId, receiverId, content }: { senderId: string, receiverId: string, content: string }) =>
-      sendMessage(senderId, receiverId, content),
-    onSuccess: (data) => {
-      if (data) {
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_MESSAGES, data.conversation],
-        });
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_CONVERSATIONS],
-        });
-      }
-    },
-  });
-};
-
-export const useMarkMessageAsRead = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (messageId: string) => markAsRead(messageId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_MESSAGES],
-      });
-    },
-  });
-};

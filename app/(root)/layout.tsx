@@ -5,6 +5,8 @@ import Topbar from "@/components/shared/Topbar";
 import LeftSidebar from "@/components/shared/LeftSidebar";
 import Bottombar from "@/components/shared/Bottombar";
 
+import { SocketProvider } from "@/components/shared/SocketProvider";
+
 export default async function RootLayout({
     children,
 }: {
@@ -17,15 +19,17 @@ export default async function RootLayout({
     }
 
     return (
-        <div className="w-full md:flex text-white">
-            <Topbar />
-            <LeftSidebar />
+        <SocketProvider>
+            <div className="w-full md:flex text-white">
+                <Topbar />
+                <LeftSidebar />
 
-            <section className="flex flex-1 h-full">
-                {children}
-            </section>
+                <section className="flex flex-1 h-full">
+                    {children}
+                </section>
 
-            <Bottombar />
-        </div>
+                <Bottombar />
+            </div>
+        </SocketProvider>
     );
 }

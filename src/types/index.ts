@@ -121,3 +121,23 @@ export type DocumentList = {
   }[];
   total?: number; // Optional: total number of documents
 };
+
+export type IMessage = {
+  _id: string;
+  sender: IUser;
+  receiver: string | IUser;
+  conversation: string;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type IConversation = {
+  _id: string;
+  participants: IUser[];
+  lastMessage?: string | IMessage;
+  lastMessageText?: string;
+  createdAt: string;
+  updatedAt: string;
+};
