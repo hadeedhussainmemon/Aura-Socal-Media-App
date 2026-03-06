@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
@@ -30,17 +30,16 @@ const StatBlock = ({ value, label }: StabBlockProps) => (
 );
 
 type ProfileWrapperProps = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
+  const { id } = React.use(params);
   const { data: session } = useSession();
   const user = session?.user;
 
   const [activeTab, setActiveTab] = useState<'posts' | 'liked'>('posts');
   const [showPrivacySettings, setShowPrivacySettings] = useState(false);
-
-  const id = params?.id;
 
   const [currentUser, setCurrentUser] = useState<IUser | null>(null);
   const [userPosts, setUserPosts] = useState<IPost[]>([]);
@@ -111,6 +110,7 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
   // NEW ROBUST SHARE/COPY FUNCTION
   // ==================================================================
   const handleShareProfile = async () => {
+    if (!currentUser) return;
     const url = window.location.href;
 
     // --- 1. Try Web Share API (Mobile, HTTPS only) ---
@@ -271,7 +271,7 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
           <div className="w-full mt-4">
             <PrivacySettings
               currentPrivacy={currentUser.privacy_setting || "public"}
-              userId={currentUser._id}
+              userId={currentUser.id || currentUser._id || ""}
             />
           </div>
         )}
