@@ -274,9 +274,26 @@ export async function getPublicFollowingCount(userId: string) {
 }
 
 export async function sendPasswordResetEmail(email: string) {
-    // Placeholder for email service
-    console.log(`Password reset email would be sent to ${email}`);
-    return true;
+    try {
+        await connectToDatabase();
+
+        // Find user by email
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            throw new Error("No account found with this email address. Please check and try again.");
+        }
+
+        // Placeholder for real email service
+        console.log(`🚀 Password reset logic: A reset link would be generated for ${user.email} (${user.name})`);
+
+        // In a real app, you'd generate a JWT token and send the email here
+        // For now, we return true to indicate the "process" succeeded for valid accounts
+        return true;
+    } catch (error: any) {
+        console.error("❌ Error in sendPasswordResetEmail:", error);
+        throw new Error(error.message || "Something went wrong. Please try again later.");
+    }
 }
 
 export async function updateUserPassword(newPassword: string) {

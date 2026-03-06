@@ -30,7 +30,7 @@ const UserCard = ({ user }: UserCardProps) => {
   const isOwnProfile = currentUser?.id === user.id;
 
   return (
-    <Link href={`/profile/${user.id || user._id}`} className="user-card glass-card hover:bg-white/5 transition-all duration-300 border border-white/5 rounded-3xl p-6 shadow-sm hover:shadow-glass group">
+    <Link href={`/profile/${user.username}`} className="user-card glass-card hover:bg-white/5 transition-all duration-300 border border-white/5 rounded-3xl p-6 shadow-sm hover:shadow-glass group">
       <div className="relative">
         <Image
           src={user?.imageUrl || "/assets/icons/profile-placeholder.svg"}

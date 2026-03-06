@@ -40,78 +40,90 @@ const LeftSidebar = () => {
 
   return (
     <nav className="leftsidebar glass-morphism shadow-glass">
-      <div className="flex flex-col gap-11">
-        <Link href="/" className="flex gap-3 items-center group">
-          <div className="w-32 h-auto text-4xl font-bold aura-text-gradient tracking-tighter group-hover:scale-105 transition-transform duration-300">
+      <div className="flex flex-col gap-10 h-full">
+        <Link href="/" className="px-3 mb-2 flex items-center group">
+          <div className="text-2xl font-black aura-text-gradient tracking-tighter group-hover:scale-105 transition-transform duration-300">
             Aura
           </div>
         </Link>
 
-        {isLoading || !user?.email ? (
-          <div className="h-14">
-            <Loader />
-          </div>
-        ) : (
-          <>
-            <Link
-              href={`/profile/${(user as { username?: string }).username || user.id || (user as { _id?: string })._id}`}
-              className="flex gap-3 items-center group"
-            >
-              <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-[#7928CA] to-[#FF0080] group-hover:scale-105 transition-transform duration-300">
-                <Image
-                  src={user.image || "/assets/icons/profile-placeholder.svg"}
-                  alt="profile"
-                  width={56}
-                  height={56}
-                  className="h-14 w-14 rounded-full object-cover border-2 border-dark-1"
-                />
-              </div>
-              <div className="flex flex-col">
-                <p className="body-bold group-hover:text-primary-500 transition-colors uppercase tracking-wider">{user.name}</p>
-                <p className="small-regular text-light-3">@{(user as { username?: string }).username || "aura_user"}</p>
-              </div>
-            </Link>
-            {/* Notification Bell in Sidebar */}
-            <div className="mt-4 flex justify-center backdrop-blur-md bg-white/5 rounded-2xl p-2 border border-white/10">
-              <NotificationBell />
-            </div>
-          </>
-        )}
+        <div className="flex flex-col flex-1 justify-between">
+          <ul className="flex flex-col gap-2">
+            {filteredSidebarLinks.map((link: INavLink) => {
+              const isActive = pathname === link.route;
 
-        <ul className="flex flex-col gap-6">
-          {filteredSidebarLinks.map((link: INavLink) => {
-            const isActive = pathname === link.route;
+              return (
+                <li
+                  key={link.label}
+                  className={`leftsidebar-link group hover:bg-white/5 transition-all duration-300 rounded-xl ${isActive && "bg-white/5 text-primary-500"
+                    }`}>
+                  <Link
+                    href={link.route}
+                    className="flex gap-4 items-center p-3">
+                    <Image
+                      src={link.imgURL}
+                      alt={link.label}
+                      width={22}
+                      height={22}
+                      className={`group-hover:scale-110 transition-transform duration-300 ${isActive ? "aura-gradient rounded-sm p-0.5 invert-white" : "opacity-70 group-hover:opacity-100"
+                        }`}
+                    />
+                    <p className={`base-medium ${isActive ? "font-bold" : "font-medium"}`}>{link.label}</p>
+                  </Link>
+                </li>
+              );
+            })}
 
-            return (
-              <li
-                key={link.label}
-                className={`leftsidebar-link group hover:bg-white/5 hover:backdrop-blur-sm transition-all duration-300 rounded-2xl ${isActive && "bg-gradient-to-r from-primary-500 to-purple-500 shadow-glow hover:bg-white/5"
-                  }`}>
-                <Link
-                  href={link.route}
-                  className="flex gap-4 items-center p-4">
+            {/* Notifications Integrated into regular list */}
+            <li className={`leftsidebar-link group hover:bg-white/5 transition-all duration-300 rounded-xl ${pathname === '/notifications' && "bg-white/5 text-primary-500"}`}>
+              <div className="flex items-center w-full">
+                <NotificationBell inlineLabel="Notifications" />
+              </div>
+            </li>
+          </ul>
+
+          <div className="flex flex-col gap-4">
+            {isLoading || !user?.email ? (
+              <div className="h-10 px-3">
+                <Loader />
+              </div>
+            ) : (
+              <Link
+                href={`/profile/${(user as { username?: string }).username || (user as { _id?: string })._id}`}
+                className={`flex gap-3 items-center p-3 rounded-xl transition-all duration-300 hover:bg-white/5 border border-transparent hover:border-white/5 ${pathname.includes(`/profile/${(user as { username?: string }).username}`) ? "bg-white/5 border-white/5" : ""
+                  }`}
+              >
+                <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-[#7928CA] to-[#FF0080]">
                   <Image
-                    src={link.imgURL}
-                    alt={link.label}
-                    width={24}
-                    height={24}
-                    className={`group-hover:scale-110 transition-transform duration-300 ${isActive && "invert-white drop-shadow-md"
-                      }`}
+                    src={user.image || "/assets/icons/profile-placeholder.svg"}
+                    alt="profile"
+                    width={28}
+                    height={28}
+                    className="h-7 w-7 rounded-full object-cover border border-dark-1"
                   />
-                  {link.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+                </div>
+                <div className="flex flex-col overflow-hidden">
+                  <p className="small-semibold uppercase tracking-wider truncate max-w-[120px]">{user.name}</p>
+                  <p className="tiny-medium text-light-3 truncate max-w-[120px]">@{(user as { username?: string }).username || "aura_user"}</p>
+                </div>
+              </Link>
+            )}
 
-      <Button
-        className="shad-button_ghost hover:bg-red-500/10 transition-colors"
-        onClick={(e) => handleSignOut(e)}>
-        <Image src="/assets/icons/logout.svg" alt="logout" width={24} height={24} className="group-hover:scale-110 transition-transform" />
-        <p className="small-medium lg:base-medium">Logout</p>
-      </Button>
+            <Button
+              className="shad-button_ghost hover:bg-red-500/10 transition-all duration-300 p-3 rounded-xl group"
+              onClick={(e) => handleSignOut(e)}>
+              <Image
+                src="/assets/icons/logout.svg"
+                alt="logout"
+                width={22}
+                height={22}
+                className="opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all"
+              />
+              <p className="small-medium text-light-3 group-hover:text-white">Logout</p>
+            </Button>
+          </div>
+        </div>
+      </div>
     </nav>
   );
 };

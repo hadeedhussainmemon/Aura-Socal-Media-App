@@ -26,9 +26,9 @@ interface StabBlockProps {
 }
 
 const StatBlock = ({ value, label }: StabBlockProps) => (
-  <div className="flex-center gap-2 bg-white/5 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/5 shadow-sm">
-    <p className="small-semibold lg:body-bold aura-text-gradient">{value}</p>
-    <p className="small-medium lg:base-medium text-light-2">{label}</p>
+  <div className="flex items-center gap-1.5 cursor-pointer group">
+    <p className="base-bold lg:body-bold text-white group-hover:text-primary-500 transition-colors">{value}</p>
+    <p className="small-medium lg:base-medium text-light-3">{label}</p>
   </div>
 );
 
@@ -199,39 +199,39 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
     return <div className="flex-center w-full h-full"><p className="text-light-1">User not found</p></div>;
   }
 
-  const ActionButtons = () => (
-    <div className="flex gap-2 w-full mt-3">
+  const ActionButtons = ({ className = "" }: { className?: string }) => (
+    <div className={`flex flex-wrap gap-2 ${className}`}>
       {isOwnProfile ? (
         <>
           <Link
             href={`/update-profile/${currentUser._id}`}
-            className="h-10 glass-card px-4 text-light-1 flex-center gap-2 rounded-lg hover:bg-white/10 flex-1 transition-all duration-300"
+            className="h-8 glass-card px-4 text-light-1 flex-center gap-2 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10"
           >
-            <p className="flex whitespace-nowrap small-medium">Edit Profile</p>
+            <p className="flex whitespace-nowrap subtle-semibold">Edit Profile</p>
           </Link>
           <Button
             type="button"
-            className="h-10 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 flex-1 transition-all duration-300"
+            className="h-8 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10"
             onClick={() => setShowPrivacySettings(!showPrivacySettings)}
           >
-            <p className="flex whitespace-nowrap small-medium">Settings</p>
+            <p className="flex whitespace-nowrap subtle-semibold">Settings</p>
           </Button>
-          <Button type="button" className="h-10 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 flex-1 transition-all duration-300" onClick={handleShareProfile}>
-            <p className="flex whitespace-nowrap small-medium">Share Profile</p>
+          <Button type="button" className="h-8 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10" onClick={handleShareProfile}>
+            <p className="flex whitespace-nowrap subtle-semibold">Share Profile</p>
           </Button>
         </>
       ) : (
         <>
           <Button
             type="button"
-            className={`h-10 px-4 text-light-1 flex-center gap-2 rounded-lg flex-1 transition-all duration-300 ${isCurrentlyFollowing
-              ? "glass-card hover:bg-white/10"
+            className={`h-8 px-5 text-light-1 flex-center gap-2 rounded-lg transition-all duration-300 ${isCurrentlyFollowing
+              ? "glass-card hover:bg-white/10 border border-white/10"
               : "bg-primary-500 hover:bg-primary-600 shadow-lg shadow-primary-500/20"
               }`}
             onClick={handleFollowToggle}
             disabled={isFollowingLoading}
           >
-            <p className="flex whitespace-nowrap small-medium">
+            <p className="flex whitespace-nowrap subtle-semibold">
               {isFollowingLoading
                 ? "Loading..."
                 : isCurrentlyFollowing
@@ -240,8 +240,8 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
               }
             </p>
           </Button>
-          <Button type="button" className="h-10 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 flex-1 transition-all duration-300" onClick={handleShareProfile}>
-            <p className="flex whitespace-nowrap small-medium">Share Profile</p>
+          <Button type="button" className="h-8 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10" onClick={handleShareProfile}>
+            <p className="flex whitespace-nowrap subtle-semibold">Share Profile</p>
           </Button>
         </>
       )}
@@ -266,44 +266,44 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
             className="w-24 h-24 sm:w-28 sm:h-28 rounded-full flex-shrink-0 object-cover"
           />
           <div className="flex flex-col items-start w-full">
-            <h1 className="text-left text-xl sm:text-2xl font-bold">
-              {currentUser.name}
-            </h1>
-            <p className="text-sm text-light-3 text-left">
-              @{currentUser.username}
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full">
+              <h1 className="text-xl sm:text-2xl font-light tracking-tight">
+                @{currentUser.username}
+              </h1>
+              <ActionButtons />
+            </div>
+
+            <div className="flex gap-6 mt-4">
+              <StatBlock value={isUserLoading ? "..." : userPosts?.length || 0} label="posts" />
+              <StatBlock value={followersCount} label="followers" />
+              <StatBlock value={followingCount} label="following" />
+            </div>
+
+            <div className="mt-4">
+              <p className="base-semibold text-white">{currentUser.name}</p>
+              <LinkifiedText
+                text={currentUser.bio || ""}
+                className="text-sm text-left text-light-2 mt-1"
+              />
+            </div>
 
             {/* Privacy indicator */}
             {isOwnProfile && (
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-light-3">Privacy:</span>
+              <div className="flex items-center gap-2 mt-2 py-1 px-2 bg-white/5 rounded-md border border-white/5">
+                <span className="text-[10px] text-light-3 uppercase tracking-wider font-bold">Account Privacy:</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-sm">
+                  <span className="text-xs">
                     {PRIVACY_SETTINGS.find(setting => setting.value === currentUser.privacy_setting)?.icon || "🌍"}
                   </span>
-                  <span className="text-xs text-light-2 capitalize">
+                  <span className="text-[10px] text-light-1 capitalize font-medium">
                     {PRIVACY_SETTINGS.find(setting => setting.value === currentUser.privacy_setting)?.label || "Public"}
                   </span>
                 </div>
               </div>
             )}
-
-            <div className="flex gap-4 sm:gap-6 mt-3">
-              <StatBlock value={isUserLoading ? "..." : userPosts?.length || 0} label="Posts" />
-              <StatBlock value={followersCount} label="Followers" />
-              <StatBlock value={followingCount} label="Following" />
-            </div>
           </div>
         </div>
 
-        <div className="mt-2 w-full">
-          <LinkifiedText
-            text={currentUser.bio || ""}
-            className="text-sm text-left"
-          />
-        </div>
-
-        <ActionButtons />
 
         {/* Privacy Settings Section - Only for own profile */}
         {isOwnProfile && showPrivacySettings && (
@@ -316,27 +316,38 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
         )}
       </div>
 
-      <div className="flex border-t border-dark-4 w-full max-w-5xl mt-2 pt-2">
-        {currentUser._id === user?.id && (
-          <div className="flex max-w-5xl w-full">
-            <button
-              onClick={() => setActiveTab('posts')}
-              className={`profile-tab rounded-l-lg ${activeTab === 'posts' && "!bg-dark-3"
-                }`}
-            >
-              <Image src={"/assets/icons/posts.svg"} alt="posts" width={20} height={20} />
-              Posts
-            </button>
+      <div className="flex border-t border-white/5 w-full max-w-5xl mt-8">
+        <div className="flex justify-center w-full">
+          <button
+            onClick={() => setActiveTab('posts')}
+            className={`profile-tab ${activeTab === 'posts' && "profile-tab-active"}`}
+          >
+            <Image
+              src={"/assets/icons/posts.svg"}
+              alt="posts"
+              width={16}
+              height={16}
+              className={activeTab === 'posts' ? "invert-white" : "opacity-50"}
+            />
+            <span className="uppercase tracking-widest text-[10px] font-bold">Posts</span>
+          </button>
+
+          {isOwnProfile && (
             <button
               onClick={() => setActiveTab('liked')}
-              className={`profile-tab rounded-r-lg ${activeTab === 'liked' && "!bg-dark-3"
-                }`}
+              className={`profile-tab ${activeTab === 'liked' && "profile-tab-active"}`}
             >
-              <Image src={"/assets/icons/like.svg"} alt="like" width={20} height={20} />
-              Liked Posts
+              <Image
+                src={"/assets/icons/like.svg"}
+                alt="like"
+                width={16}
+                height={16}
+                className={activeTab === 'liked' ? "invert-white" : "opacity-50"}
+              />
+              <span className="uppercase tracking-widest text-[10px] font-bold">Liked</span>
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="w-full max-w-5xl mt-4">

@@ -55,11 +55,14 @@ const SigninForm = () => {
   };
 
   return (
-    <div className="w-full max-w-[350px] flex flex-col items-center mt-12 sm:mt-0 sm:justify-center sm:min-h-full">
-      <div className="w-full glass-morphism rounded-[3px] border border-white/10 shadow-glass px-10 py-12 flex flex-col items-center relative overflow-hidden">
+    <div className="w-full max-w-[400px] flex flex-col items-center mt-12 sm:mt-0 sm:justify-center sm:min-h-full p-4">
+      {/* Decorative Aura Glows */}
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary-500/20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/20 blur-[120px] rounded-full pointer-events-none" />
 
+      <div className="w-full glass-morphism rounded-[24px] border border-white/10 shadow-glass px-8 py-10 flex flex-col items-center relative overflow-hidden">
         {/* Subtle top glare */}
-        <div className="absolute top-0 left-0 right-0 h-[100px] bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-[100px] bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
 
         <div className="w-full text-center mb-10">
           <h1 className="text-4xl font-extrabold tracking-tighter aura-text-gradient inline-block mt-4">
@@ -148,17 +151,17 @@ const SigninForm = () => {
         </Form>
       </div>
 
-      <div className="w-full glass-morphism rounded-[3px] border border-white/10 shadow-glass py-5 mt-4 text-center">
+      <div className="w-full glass-morphism rounded-[24px] border border-white/10 shadow-glass py-5 mt-4 text-center">
         <p className="text-sm text-light-1">
           Don&apos;t have an account?{" "}
           <Link
             href="/sign-up"
-            className="text-primary-500 font-semibold hover:text-white transition-colors">
+            className="text-primary-500 font-bold hover:text-white transition-colors">
             Sign up
           </Link>
         </p>
       </div>
-    </div>
+    </div >
   );
 };
 

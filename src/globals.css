@@ -32,7 +32,11 @@
   }
 
   .glass-morphism {
-    @apply bg-black/20 backdrop-blur-lg border border-white/10;
+    @apply bg-black/10 backdrop-blur-2xl border border-white/5;
+  }
+
+  .premium-blur {
+    @apply backdrop-blur-[40px] bg-black/30 border border-white/10 shadow-2xl;
   }
 
   .aura-gradient {
@@ -42,6 +46,20 @@
   .aura-text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-[#0070f3] via-[#7928ca] to-[#ff0080];
   }
+
+  /* Right Sidebar Suggestions */
+  .suggestion-row {
+    @apply flex items-center justify-between w-full py-2 hover:bg-white/5 px-2 rounded-xl transition-all duration-200;
+  }
+}
+
+@keyframes heartBurst {
+  0% { transform: scale(0); opacity: 0; }
+  15% { transform: scale(1.2); opacity: 1; }
+  30% { transform: scale(1); opacity: 1; }
+  45% { transform: scale(1.1); opacity: 1; }
+  80% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0); opacity: 0; }
 }
 
 @layer utilities {
@@ -215,7 +233,11 @@
   }
 
   .profile-tab {
-    @apply flex-center gap-3 py-4 w-48 bg-dark-2  transition flex-1 xl:flex-initial;
+    @apply flex-center gap-3 py-4 w-48 transition flex-1 xl:flex-initial text-light-3 hover:text-white border-t-2 border-transparent;
+  }
+
+  .profile-tab-active {
+    @apply border-t-2 border-primary-500 text-white bg-white/5;
   }
 
   /* Saved */

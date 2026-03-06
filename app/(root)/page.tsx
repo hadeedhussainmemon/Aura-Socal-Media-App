@@ -123,28 +123,46 @@ const Home = () => {
         </div>
       </div>
       <div className="home-creators">
-        <h3 className="h3-bold aura-text-gradient">People You Might Know</h3>
+        <div className="flex-between w-full mb-4">
+          <h3 className="base-bold text-light-3">Suggestions For You</h3>
+          <Link href="/all-users" className="small-semibold text-primary-500 hover:text-light-1 transition-colors">
+            See All
+          </Link>
+        </div>
+
         {isCreatorsLoading && !creators.length ? (
-          <ul className="grid 2xl:grid-cols-2 gap-6 w-full">
-            {[...Array(4)].map((_, i) => (
-              <li key={`user-skeleton-${i}`}>
-                <UserSkeleton />
-              </li>
+          <div className="flex flex-col gap-4 w-full">
+            {[...Array(5)].map((_, i) => (
+              <div key={`sugg-skeleton-${i}`} className="flex items-center gap-3 w-full">
+                <div className="w-10 h-10 rounded-full bg-dark-4 animate-pulse" />
+                <div className="flex flex-col gap-2 flex-1">
+                  <div className="h-3 w-24 bg-dark-4 rounded animate-pulse" />
+                  <div className="h-2 w-32 bg-dark-4 rounded animate-pulse" />
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <ul className="grid 2xl:grid-cols-2 gap-6">
+          <div className="flex flex-col gap-3 w-full">
             {otherUsers && otherUsers.length > 0 ? (
-              otherUsers.map((creator: IUser) => (
-                <li key={creator?._id}>
-                  <UserCard user={creator} />
-                </li>
+              otherUsers.slice(0, 5).map((creator: IUser) => (
+                <SuggestionRow key={creator?._id} user={creator} />
               ))
             ) : (
-              <p className="text-light-4">No other users yet</p>
+              <p className="text-light-4 text-xs">No suggestions available</p>
             )}
-          </ul>
+          </div>
         )}
+
+        {/* Footer links similar to Instagram */}
+        <div className="mt-10 flex flex-wrap gap-x-2 gap-y-1 opacity-50">
+          {['About', 'Help', 'Press', 'API', 'Jobs', 'Privacy', 'Terms', 'Locations', 'Language'].map((link) => (
+            <span key={link} className="text-[10px] text-light-3 hover:underline cursor-pointer">{link}</span>
+          ))}
+        </div>
+        <p className="mt-6 text-[10px] text-light-3 opacity-50 uppercase tracking-widest font-bold">
+          © {new Date().getFullYear()} AURA FROM HADEED
+        </p>
       </div>
     </div>
   );

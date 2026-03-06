@@ -52,7 +52,7 @@ const PostCard = ({ post }: PostCardProps) => {
       {/* Header (Avatar & Name) */}
       <div className="flex-between p-3 sm:p-4">
         <div className="flex items-center gap-3">
-          <Link href={`/profile/${post.creator.username || post.creator.id}`} className="group/avatar relative">
+          <Link href={`/profile/${post.creator.username || post.creator._id}`} className="group/avatar relative">
             <Image
               src={
                 post.creator?.imageUrl ||
@@ -66,7 +66,7 @@ const PostCard = ({ post }: PostCardProps) => {
           </Link>
 
           <div className="flex flex-col">
-            <Link href={`/profile/${post.creator.username || post.creator.id}`} className="base-medium text-light-1 hover:text-light-3 transition-colors w-fit">
+            <Link href={`/profile/${post.creator.username || post.creator._id}`} className="base-medium text-light-1 hover:text-light-3 transition-colors w-fit">
               {post.creator.name}
             </Link>
             {post.location && (
@@ -121,12 +121,12 @@ const PostCard = ({ post }: PostCardProps) => {
         {showHeartOverlay && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
             <Image
-              src="/assets/icons/like.svg"
+              src="/assets/icons/liked.svg"
               alt="liked"
-              width={100}
-              height={100}
-              className="drop-shadow-2xl animate-in zoom-in duration-300 fade-in fade-out fill-mode-forwards opacity-0 invert-white scale-150"
-              style={{ animation: 'heartBurst 1s ease-out forwards' }}
+              width={120}
+              height={120}
+              className="drop-shadow-[0_0_20px_rgba(255,0,0,0.5)]"
+              style={{ animation: 'heartBurst 0.8s ease-out forwards' }}
             />
           </div>
         )}
@@ -144,7 +144,7 @@ const PostCard = ({ post }: PostCardProps) => {
       {/* Caption & Tags */}
       <div className="px-3 sm:px-4 pb-4">
         <div className="flex flex-wrap items-baseline gap-2">
-          <Link href={`/profile/${post.creator.username || post.creator.id}`} className="base-medium text-light-1 hover:text-light-3 transition-colors">
+          <Link href={`/profile/${post.creator.username || post.creator._id}`} className="base-medium text-light-1 hover:text-light-3 transition-colors">
             {post.creator.name}
           </Link>
           <span className="small-regular text-light-1">{post.caption}</span>

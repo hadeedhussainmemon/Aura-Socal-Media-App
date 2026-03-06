@@ -22,7 +22,7 @@ type Notification = {
   user?: { id: string; name: string; username: string; image_url?: string };
 };
 
-const NotificationBell = () => {
+const NotificationBell = ({ inlineLabel }: { inlineLabel?: string }) => {
   const { data: session } = useSession();
   const user = session?.user;
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -76,68 +76,79 @@ const NotificationBell = () => {
   };
 
   return (
-    <div className="relative">
+    <div className={`relative ${inlineLabel ? 'w-full' : ''}`}>
       {/* Modern Bell Button */}
       <motion.button
-        className="relative p-3 rounded-xl bg-dark-3/50 hover:bg-dark-2/70 border border-dark-4/50 hover:border-dark-4 transition-all duration-200 group"
+        className={`relative rounded-xl transition-all duration-200 group flex items-center gap-4 ${inlineLabel
+          ? 'w-full p-3 hover:bg-white/5 active:scale-[0.98]'
+          : 'p-3 bg-dark-3/50 hover:bg-dark-2/70 border border-dark-4/50 hover:border-dark-4'
+          }`}
         onClick={handleBellClick}
-        whileHover={{ scale: 1.05 }}
+        whileHover={!inlineLabel ? { scale: 1.05 } : {}}
         whileTap={{ scale: 0.95 }}
       >
         {/* Bell Icon with Animation */}
-        <motion.div
-          animate={unreadCount > 0 ? { rotate: [0, -10, 10, -10, 0] } : {}}
-          transition={{ duration: 0.5, repeat: unreadCount > 0 ? Infinity : 0, repeatDelay: 3 }}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="text-light-2 group-hover:text-light-1 transition-colors"
+        <div className="relative">
+          <motion.div
+            animate={unreadCount > 0 ? { rotate: [0, -10, 10, -10, 0] } : {}}
+            transition={{ duration: 0.5, repeat: unreadCount > 0 ? Infinity : 0, repeatDelay: 3 }}
           >
-            <path
-              d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </motion.div>
-
-        {/* Modern Badge */}
-        <AnimatePresence>
-          {unreadCount > 0 && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              className="absolute -top-1 -right-1 flex items-center justify-center"
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              className="text-light-2 group-hover:text-light-1 transition-colors"
             >
-              {/* Pulsing Background */}
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="absolute inset-0 bg-red-500 rounded-full"
+              <path
+                d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
-              {/* Badge Content */}
-              <div className="relative bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 border-2 border-dark-1">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <path
+                d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </motion.div>
+
+          {/* Modern Badge */}
+          <AnimatePresence>
+            {unreadCount > 0 && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                className={`absolute -top-1 -right-1 flex items-center justify-center ${inlineLabel ? 'scale-75 origin-top-right' : ''}`}
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="absolute inset-0 bg-red-500 rounded-full"
+                />
+                <div className="relative bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 border border-dark-1">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {inlineLabel && (
+          <p className="small-medium text-light-2 group-hover:text-light-1 transition-colors">
+            {inlineLabel}
+          </p>
+        )}
 
         {/* Hover Glow Effect */}
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/0 to-primary-600/0 group-hover:from-primary-500/10 group-hover:to-primary-600/10 transition-all duration-300" />
+        {!inlineLabel && (
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/0 to-primary-600/0 group-hover:from-primary-500/10 group-hover:to-primary-600/10 transition-all duration-300" />
+        )}
       </motion.button>
 
       {/* Modern Dropdown */}
