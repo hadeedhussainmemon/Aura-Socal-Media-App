@@ -6,11 +6,13 @@ import Loader from "@/components/shared/Loader";
 import GridPostList from "@/components/shared/GridPostList";
 import { getSavedPostsServer } from "@/lib/actions/post.actions";
 
+import { IPost } from "@/types";
+
 const Saved = () => {
   const { data: session } = useSession();
   const currentUser = session?.user;
 
-  const [savedPosts, setSavedPosts] = useState<any[]>([]);
+  const [savedPosts, setSavedPosts] = useState<IPost[]>([]);
   const [isLoadingSaved, setIsLoadingSaved] = useState(true);
 
   useEffect(() => {
@@ -22,7 +24,7 @@ const Saved = () => {
         const posts = await getSavedPostsServer(currentUser.id);
 
         // Map the saved post documents relative to the post field
-        const formattedPosts = posts ? posts.map((save: any) => save.post) : [];
+        const formattedPosts = posts ? posts.map((save: { post: IPost }) => save.post) : [];
         setSavedPosts(formattedPosts);
       } catch (error) {
         console.error("Failed to fetch saved posts", error);

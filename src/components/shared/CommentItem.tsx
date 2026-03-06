@@ -46,15 +46,13 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
   const user = session?.user;
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(comment._count?.likes || 0);
-  const [localIsLiking, setLocalIsLiking] = useState(false);
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
-  const [localIsDeleting, setLocalIsDeleting] = useState(false);
 
   // Check if user has liked this comment
   useEffect(() => {
     if (user && comment.likes) {
-      const currentUserId = user.id || (user as any)._id;
+      const currentUserId = user.id || (user as { _id?: string })._id;
       setIsLiked(comment.likes.includes(currentUserId));
     }
   }, [user, comment.likes]);
@@ -69,11 +67,11 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
     const commentId = comment._id || comment.id;
     try {
       if (isLiked) {
-        await unlikeCommentMutate({ commentId, userId: user.id || (user as any)._id });
+        await unlikeCommentMutate({ commentId, userId: user.id || (user as { _id?: string })._id });
         setIsLiked(false);
         setLikesCount(prev => Math.max(0, prev - 1));
       } else {
-        await likeCommentMutate({ commentId, userId: user.id || (user as any)._id });
+        await likeCommentMutate({ commentId, userId: user.id || (user as { _id?: string })._id });
         setIsLiked(true);
         setLikesCount(prev => prev + 1);
       }
@@ -83,8 +81,8 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
   };
 
   const handleDelete = async () => {
-    const userId = user?.id || (user as any)?._id;
-    const authorId = comment.user?._id || (comment.user as any)?.id || comment.user_id;
+    const userId = user?.id || (user as { _id?: string })?._id;
+    const authorId = comment.user?._id || (comment.user as { id?: string })?.id || comment.user_id;
 
     if (!user || userId !== authorId || isDeleting) return;
 
@@ -104,7 +102,7 @@ const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps)
     onCommentUpdated?.();
   };
 
-  const isOwner = user?.id === comment.user_id || (user as any)?._id === comment.user_id;
+  const isOwner = user?.id === comment.user_id || (user as { _id?: string })?._id === comment.user_id;
   const hasReplies = comment.replies && comment.replies.length > 0;
   const replyCount = comment._count?.replies || 0;
 

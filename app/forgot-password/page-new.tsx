@@ -5,22 +5,18 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useMutation } from "@tanstack/react-query";
-
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../src/components/ui/form";
-import { Input } from "../../src/components/ui/input";
-import { Button } from "../../src/components/ui/button";
-import { useToast } from "../../src/hooks/use-toast";
-import { useSendPasswordResetEmail } from "../../src/lib/react-query/queriesAndMutations";
+import { useToast } from "@/components/ui/use-toast";
+import { useSendPasswordResetEmail } from "@/lib/react-query/queriesAndMutations";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const ForgotPasswordValidation = z.object({
   email: z.string().email("Please enter a valid email address"),
 });
 
 const ForgotPasswordPage = () => {
-  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,11 +41,11 @@ const ForgotPasswordPage = () => {
         title: "Reset email sent! 📧",
         description: "Please check your email and click the reset link.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log('❌ Error sending reset email:', error);
       toast({
         title: "Error sending reset email",
-        description: error.message || "Please try again.",
+        description: (error as Error).message || "Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -98,8 +94,8 @@ const ForgotPasswordPage = () => {
                 )}
               />
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="shad-button_primary"
                 disabled={isLoading || sendEmailMutation.isPending}
               >

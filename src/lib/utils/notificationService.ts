@@ -56,7 +56,7 @@ export class NotificationService {
         // In a real app, you'd track the last seen notification ID
       }
     } catch (error) {
-      // Silently fail polling
+      console.error('Failed to check for new notifications:', error);
     }
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
@@ -26,16 +26,21 @@ const NotificationPopup = ({ notification, onClose, onAction }: NotificationPopu
   const [isVisible, setIsVisible] = useState(false);
   const [progress, setProgress] = useState(100);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(onClose, 300);
+  }, [onClose]);
+
   useEffect(() => {
     if (notification) {
       setIsVisible(true);
       setProgress(100);
-      
+
       // Auto-hide with progress bar
       const duration = 6000; // 6 seconds
       const interval = 50; // Update every 50ms
       const step = (100 * interval) / duration;
-      
+
       const progressTimer = setInterval(() => {
         setProgress(prev => {
           const newProgress = prev - step;
@@ -50,12 +55,7 @@ const NotificationPopup = ({ notification, onClose, onAction }: NotificationPopu
 
       return () => clearInterval(progressTimer);
     }
-  }, [notification]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(onClose, 300);
-  };
+  }, [notification, handleClose]);
 
   const handleAction = () => {
     if (onAction) onAction();
@@ -116,9 +116,9 @@ const NotificationPopup = ({ notification, onClose, onAction }: NotificationPopu
           initial={{ x: 400, opacity: 0, scale: 0.8 }}
           animate={{ x: 0, opacity: 1, scale: 1 }}
           exit={{ x: 400, opacity: 0, scale: 0.8 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 400, 
+          transition={{
+            type: "spring",
+            stiffness: 400,
             damping: 25,
             opacity: { duration: 0.2 }
           }}
@@ -128,7 +128,7 @@ const NotificationPopup = ({ notification, onClose, onAction }: NotificationPopu
           <div className="relative overflow-hidden bg-gradient-to-br from-dark-2/95 to-dark-3/95 backdrop-blur-lg border border-dark-4/50 rounded-2xl shadow-2xl">
             {/* Progress bar */}
             <div className="absolute top-0 left-0 h-1 bg-dark-4 w-full">
-              <motion.div 
+              <motion.div
                 className={`h-full bg-gradient-to-r ${getTypeColor()}`}
                 initial={{ width: '100%' }}
                 animate={{ width: `${progress}%` }}
@@ -153,15 +153,15 @@ const NotificationPopup = ({ notification, onClose, onAction }: NotificationPopu
                       className="filter brightness-0 invert"
                     />
                   </div>
-                  
+
                   <div>
                     <h4 className="text-light-1 font-semibold text-sm leading-tight">
                       {notification.title}
                     </h4>
                     <p className="text-light-4 text-xs mt-0.5">
-                      {notification.timestamp.toLocaleTimeString([], { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                      {notification.timestamp.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
                       })}
                     </p>
                   </div>
@@ -172,7 +172,7 @@ const NotificationPopup = ({ notification, onClose, onAction }: NotificationPopu
                   className="text-light-4 hover:text-light-1 transition-colors duration-200 p-1 hover:bg-dark-4/50 rounded-lg"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                 </button>
               </div>
@@ -188,7 +188,7 @@ const NotificationPopup = ({ notification, onClose, onAction }: NotificationPopu
                   {/* Online indicator */}
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-dark-2" />
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <p className="text-light-2 text-sm leading-relaxed">
                     <span className="font-semibold text-light-1">{notification.userName}</span>

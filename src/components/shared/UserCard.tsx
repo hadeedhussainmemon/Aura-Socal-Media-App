@@ -1,16 +1,17 @@
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Button } from "../ui/button";
 import { useIsFollowing, useFollowUser, useUnfollowUser } from "@/lib/react-query/queriesAndMutations";
-import { useSession } from "next-auth/react";
+import { IUser } from "@/types";
 
 type UserCardProps = {
-  user: any; // User type
+  user: IUser;
 };
 
 const UserCard = ({ user }: UserCardProps) => {
   const { data: session } = useSession();
   const currentUser = session?.user;
-  const { data: isCurrentlyFollowing, isLoading: isFollowingLoading } = useIsFollowing(user.id || user._id);
+  const { data: isCurrentlyFollowing, isLoading: isFollowingLoading } = useIsFollowing(user.id || user._id || "");
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
 
@@ -19,18 +20,18 @@ const UserCard = ({ user }: UserCardProps) => {
     e.stopPropagation();
 
     if (isCurrentlyFollowing) {
-      unfollowMutation.mutate(user.id || user._id);
+      unfollowMutation.mutate(user.id);
     } else {
-      followMutation.mutate(user.id || user._id);
+      followMutation.mutate(user.id);
     }
   };
 
-  const isOwnProfile = currentUser?.id === user.id || (currentUser as any)?._id === user._id;
+  const isOwnProfile = currentUser?.id === user.id;
 
   return (
     <Link href={`/profile/${user.id || user._id}`} className="user-card">
       <img
-        src={user.image_url || user.imageUrl || "/assets/icons/profile-placeholder.svg"}
+        src={user?.imageUrl || "/assets/icons/profile-placeholder.svg"}
         alt="creator"
         className="rounded-full w-14 h-14"
       />
@@ -49,8 +50,8 @@ const UserCard = ({ user }: UserCardProps) => {
           type="button"
           size="sm"
           className={`px-5 ${isCurrentlyFollowing
-              ? "bg-dark-4 hover:bg-dark-3 text-light-1"
-              : "shad-button_primary"
+            ? "bg-dark-4 hover:bg-dark-3 text-light-1"
+            : "shad-button_primary"
             }`}
           onClick={handleFollowToggle}
           disabled={followMutation.isPending || unfollowMutation.isPending || isFollowingLoading}

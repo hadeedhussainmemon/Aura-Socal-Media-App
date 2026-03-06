@@ -74,10 +74,12 @@ function ResetPasswordForm() {
         description: "Check your email for the 6-digit code.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error | { message?: string }) => {
+      const err = error as { message?: string };
+      console.log('❌ Error sending reset email:', err);
       toast({
-        title: "Error sending reset code",
-        description: error.message || "Please try again.",
+        title: "Error sending reset email",
+        description: err.message || "Please try again.",
         variant: "destructive",
       });
     },
@@ -113,7 +115,7 @@ function ResetPasswordForm() {
         router.push('/sign-in');
       }, 3000);
     },
-    onError: (error: any) => {
+    onError: (error: Error | { message?: string }) => {
       toast({
         title: "Error resetting password",
         description: error.message || "Please check your code and try again.",

@@ -42,11 +42,12 @@ const ForgotPasswordPage = () => {
         title: "Reset email sent! 📧",
         description: "Please check your email and click the reset link.",
       });
-    } catch (error: any) {
-      console.log('❌ Error sending reset email:', error);
+    } catch (error: unkown) {
+      const err = error as { message?: string };
+      console.log('❌ Error sending reset email:', err);
       toast({
         title: "Error sending reset email",
-        description: error.message || "Please try again.",
+        description: err.message || "Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -95,8 +96,8 @@ const ForgotPasswordPage = () => {
                 )}
               />
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="shad-button_primary"
                 disabled={isLoading || sendEmailMutation.isPending}
               >

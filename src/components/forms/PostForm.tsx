@@ -17,8 +17,10 @@ import { Button } from "../ui/button";
 import { Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui";
 import { POST_CATEGORIES } from "@/constants";
 
+import { IPost } from "@/types";
+
 type PostFormProps = {
-  post?: any;
+  post?: IPost;
   action: "Create" | "Update";
 };
 
@@ -67,8 +69,8 @@ const PostForm = ({ post, action }: PostFormProps) => {
         formData.append("file", value.file[0]);
       }
 
-      if (action === "Update" && post) {
-        formData.append("postId", post._id);
+      if (action === "Update" && post?._id) {
+        formData.append("postId", post._id.toString());
         const res = await fetch(`/api/posts/${post._id}`, {
           method: "PUT",
           body: formData,
@@ -132,7 +134,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
               <FormControl>
                 <FileUploader
                   fieldChange={field.onChange}
-                  mediaUrl={post?.imageUrl}
+                  mediaUrl={post?.imageUrl || ""}
                 />
               </FormControl>
               <FormMessage className="shad-form_message" />

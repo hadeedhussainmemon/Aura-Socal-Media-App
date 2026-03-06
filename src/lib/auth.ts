@@ -1,10 +1,11 @@
-import { NextAuthOptions } from "next-auth";
+import { Session, User as NextAuthUser } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { connectToDatabase } from "@/lib/mongoose";
 import User from "@/lib/models/user.model";
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
     providers: [
         CredentialsProvider({
             name: "credentials",
@@ -26,8 +27,8 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 const isCorrectPassword = await bcrypt.compare(
-                    credentials.password,
-                    user.password
+                    credentials.password as string,
+                    user.password as string
                 );
 
                 if (!isCorrectPassword) {
@@ -45,20 +46,18 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
     },
     callbacks: {
-        async jwt({ token, user }: any) {
+        async jwt({ token, user }: { token: JWT; user?: NextAuthUser }) {
             if (user) {
-                token.id = user._id;
+                token.id = user.id;
                 token.username = user.username;
             }
-
             return token;
         },
-        async session({ session, token }: any) {
+        async session({ session, token }: { session: Session; token: JWT }) {
             if (session.user) {
                 session.user.id = token.id;
                 session.user.username = token.username;
             }
-
             return session;
         }
     },

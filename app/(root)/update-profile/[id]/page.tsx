@@ -24,6 +24,7 @@ import Loader from "@/components/shared/Loader";
 import ProfileUploader from "@/components/shared/ProfileUploder";
 
 import { getUserByIdServer } from "@/lib/actions/user.actions";
+import { IUser } from "@/types";
 
 const UpdateProfile = () => {
   const { toast } = useToast();
@@ -36,7 +37,7 @@ const UpdateProfile = () => {
 
   const userId = Array.isArray(id) ? id[0] : id;
 
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<IUser | null>(null);
   const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 

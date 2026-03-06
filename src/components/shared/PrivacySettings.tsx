@@ -48,9 +48,9 @@ const PrivacySettings = ({ currentPrivacy, userId, onClose }: PrivacySettingsPro
         userId: userId,
         privacy_setting: selectedPrivacy as "public" | "private" | "followers_only",
         name: user.name || "",
-        username: (user as any).username || "",
+        username: (user as { username?: string }).username || "",
         email: user.email || "",
-        bio: (user as any).bio || "",
+        bio: (user as { bio?: string }).bio || "",
         file: [],
         imageUrl: user.image || undefined,
       });

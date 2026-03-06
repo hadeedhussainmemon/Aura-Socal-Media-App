@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { IUser } from "@/types";
 
 type ShareProfileModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  user: any;
+  user: IUser;
 };
 
 const ShareProfileModal = ({ isOpen, onClose, user }: ShareProfileModalProps) => {
@@ -105,7 +105,7 @@ const ShareProfileModal = ({ isOpen, onClose, user }: ShareProfileModalProps) =>
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
@@ -159,11 +159,10 @@ const ShareProfileModal = ({ isOpen, onClose, user }: ShareProfileModalProps) =>
             />
             <button
               onClick={handleCopyLink}
-              className={`px-3 py-1 rounded text-sm transition-colors ${
-                copied 
-                  ? 'bg-green-600 text-white' 
+              className={`px-3 py-1 rounded text-sm transition-colors ${copied
+                  ? 'bg-green-600 text-white'
                   : 'bg-primary-500 hover:bg-primary-600 text-white'
-              }`}
+                }`}
             >
               {copied ? 'Copied!' : 'Copy'}
             </button>

@@ -242,7 +242,7 @@ export async function getFollowingFeedServer(userId: string, page: number = 1, l
     }
 }
 
-export async function createPostServer(postData: any) {
+export async function createPostServer(postData: Record<string, unknown>) {
     try {
         await connectToDatabase();
 
@@ -254,7 +254,7 @@ export async function createPostServer(postData: any) {
     }
 }
 
-export async function updatePostServer(postId: string, postData: any) {
+export async function updatePostServer(postId: string, postData: Record<string, unknown>) {
     try {
         await connectToDatabase();
 
@@ -307,7 +307,7 @@ export async function getAdminAllPosts(page = 1, limit = 10, search = '') {
         const total = await Post.countDocuments(query);
 
         return JSON.parse(JSON.stringify({ posts, total }));
-    } catch (error) {
+    } catch {
         return { posts: [], total: 0 };
     }
 }

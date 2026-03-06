@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Loader from "@/components/shared/Loader";
 import { useGetAdminUsers, useAddAdminUser, useRemoveAdminUser } from "@/lib/react-query/queriesAndMutations";
 import { useSession } from "next-auth/react";
+import { IUser } from "@/types";
 
 const AdminManagement = () => {
   const [newAdminEmail, setNewAdminEmail] = useState("");
@@ -53,7 +54,7 @@ const AdminManagement = () => {
         setIsAddingAdmin(false);
         // React Query will automatically invalidate and refetch
       },
-      onError: (error: any) => {
+      onError: (error: { message?: string }) => {
         toast({
           title: "Error",
           description: error.message || "Failed to add admin user.",
@@ -65,7 +66,7 @@ const AdminManagement = () => {
 
   const handleRemoveAdmin = (userId: string, userEmail: string) => {
     // Check if trying to remove own admin privileges
-    const currentUserId = currentUser?.id || (currentUser as any)?._id;
+    const currentUserId = currentUser?.id || (currentUser as { _id?: string })?._id;
     if (currentUserId === userId) {
       toast({
         title: "Action Not Allowed",
@@ -95,7 +96,7 @@ const AdminManagement = () => {
           });
           // React Query will automatically invalidate and refetch
         },
-        onError: (error: any) => {
+        onError: (error: { message?: string; error?: { message?: string } }) => {
           console.error('Remove admin error:', error);
           toast({
             title: "Error",
@@ -203,9 +204,9 @@ const AdminManagement = () => {
             Current Admins ({adminUsers?.length || 0})
           </h4>
 
-          {(adminUsers as any[]) && (adminUsers as any[]).length > 0 ? (
+          {adminUsers && adminUsers.length > 0 ? (
             <div className="grid gap-3">
-              {(adminUsers as any[]).map((admin: any, index: number) => (
+              {adminUsers.map((admin: IUser, index: number) => (
                 <motion.div
                   key={admin._id || admin.id}
                   initial={{ opacity: 0, x: -20 }}
@@ -240,7 +241,7 @@ const AdminManagement = () => {
                       disabled={
                         isRemovingAdmin ||
                         ['admin@aura.com', 'maazajaz1234@gmail.com', 'test@admin.com'].includes(admin.email.toLowerCase()) ||
-                        (currentUser?.id || (currentUser as any)?._id) === (admin._id || admin.id)
+                        (currentUser?.id || (currentUser as { _id?: string })?._id) === (admin._id || admin.id)
                       }
                       className="text-red-500 hover:text-red-400 hover:bg-red-500/10 p-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       size="sm"

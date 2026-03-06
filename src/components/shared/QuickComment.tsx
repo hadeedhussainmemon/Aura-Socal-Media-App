@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { multiFormatDateString } from "@/lib/utils";
 import AuthPromptModal from "./AuthPromptModal";
-import Link from "next/link";
+import { IComment } from "@/types";
 
 type QuickCommentProps = {
   postId: string;
@@ -55,14 +55,14 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
 
     try {
       if (isLiked) {
-        await unlikeCommentMutate({ commentId, userId: (user as any).id || (user as any)._id });
+        await unlikeCommentMutate({ commentId, userId: user.id || (user as { _id?: string })._id || "" });
         setLikedComments(prev => {
           const newSet = new Set(prev);
           newSet.delete(commentId);
           return newSet;
         });
       } else {
-        await likeCommentMutate({ commentId, userId: (user as any).id || (user as any)._id });
+        await likeCommentMutate({ commentId, userId: user.id || (user as { _id?: string })._id || "" });
         setLikedComments(prev => new Set([...prev, commentId]));
       }
     } catch (error) {
@@ -70,7 +70,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
     }
   };
 
-  const handleSubmitReply = async (_parentId: string) => {
+  const handleSubmitReply = async () => {
     if (!user) {
       setAuthAction("reply to comments");
       setShowAuthPrompt(true);
@@ -83,7 +83,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
       await createCommentMutate({
         content: replyContent.trim(),
         postId,
-        userId: (user as any).id || (user as any)._id,
+        userId: user.id || (user as { _id?: string })._id || "",
         // parentId: parentId, // MongoDB schema update needed for replies if nested
       });
 
@@ -146,7 +146,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
       await createCommentMutate({
         content: comment.trim(),
         postId,
-        userId: (user as any).id || (user as any)._id,
+        userId: user.id || (user as { _id?: string })._id || "",
       });
 
       setComment("");
@@ -166,7 +166,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
       {user ? (
         <form onSubmit={handleSubmit} className="flex items-center gap-3 p-3">
           <img
-            src={(user as any)?.imageUrl || (user as any)?.image || "/assets/icons/profile-placeholder.svg"}
+            src={user.imageUrl || (user as { image?: string }).image || "/assets/icons/profile-placeholder.svg"}
             alt="Your profile"
             width={32}
             height={32}
@@ -234,7 +234,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
           <>
             {/* Comments List */}
             <div className={`space-y-3 ${hasMoreComments && !showAllComments ? 'max-h-80 overflow-hidden' : showAllComments ? 'max-h-96 overflow-y-auto' : ''}`}>
-              {displayedComments.map((commentItem: any) => (
+              {displayedComments.map((commentItem: IComment) => (
                 <div key={commentItem._id} className="flex gap-3">
                   {/* User Avatar */}
                   <Link href={`/profile/${commentItem.user._id}`}>
@@ -352,7 +352,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                       </Button>
 
                       {/* Edit and Delete buttons - only show if comment belongs to current user */}
-                      {user && (commentItem.user._id === (user as any).id || commentItem.user._id === (user as any)._id) && (
+                      {user && (commentItem.user._id === user.id || commentItem.user._id === (user as { _id?: string })._id) && (
                         <>
                           <Button
                             variant="ghost"
@@ -379,7 +379,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                     {replyingTo === commentItem.id && (
                       <div className="flex items-center gap-2 mt-2 mb-2">
                         <img
-                          src={(user as any)?.imageUrl || (user as any)?.image || "/assets/icons/profile-placeholder.svg"}
+                          src={user.imageUrl || (user as { image?: string }).image || "/assets/icons/profile-placeholder.svg"}
                           alt="Your profile"
                           width={24}
                           height={24}
@@ -415,7 +415,7 @@ const QuickComment = ({ postId, onCommentAdded }: QuickCommentProps) => {
                     {/* Replies (if any) */}
                     {commentItem.replies && commentItem.replies.length > 0 && (
                       <div className="ml-4 mt-2 space-y-2">
-                        {commentItem.replies.slice(0, 2).map((reply: any) => (
+                        {commentItem.replies.slice(0, 2).map((reply: IComment) => (
                           <div key={reply.id} className="space-y-1">
                             <div className="flex gap-2">
                               <Link href={`/profile/${reply.user.id}`}>

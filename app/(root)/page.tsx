@@ -8,12 +8,14 @@ import UserCard from "@/components/shared/UserCard";
 import { getRecentPostsServer } from "@/lib/actions/post.actions";
 import { getAllUsersServer } from "@/lib/actions/user.actions";
 
+import { IPost, IUser } from "@/types";
+
 const Home = () => {
   const { data: session } = useSession();
   const user = session?.user;
 
-  const [posts, setPosts] = useState<any[]>([]);
-  const [creators, setCreators] = useState<any[]>([]);
+  const [posts, setPosts] = useState<IPost[]>([]);
+  const [creators, setCreators] = useState<IUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
@@ -40,7 +42,7 @@ const Home = () => {
   }, []);
 
   // Filter out current user from creators list
-  const otherUsers = creators?.filter((creator: any) => creator._id !== user?.id) || [];
+  const otherUsers = creators?.filter((creator: IUser) => creator._id !== user?.id) || [];
 
   if (isError) {
     return (
@@ -65,7 +67,7 @@ const Home = () => {
           ) : (
             <ul className="flex flex-col flex-1 gap-9 w-full ">
               {posts && posts.length > 0 ? (
-                posts.map((post: any) => (
+                posts.map((post: IPost) => (
                   <li key={post._id} className="flex justify-center w-full">
                     <PostCard post={post} />
                   </li>
@@ -117,7 +119,7 @@ const Home = () => {
         ) : (
           <ul className="grid 2xl:grid-cols-2 gap-6">
             {otherUsers && otherUsers.length > 0 ? (
-              otherUsers.map((creator: any) => (
+              otherUsers.map((creator: IUser) => (
                 <li key={creator?._id}>
                   <UserCard user={creator} />
                 </li>

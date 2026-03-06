@@ -10,22 +10,21 @@ type FileUploaderProps = {
 };
 
 const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
-  const [file, setFile] = useState<File[]>([]);
   const [fileUrl, setFileUrl] = useState<string>(mediaUrl);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   const onDrop = useCallback(
     (acceptedFiles: FileWithPath[]) => {
       console.log('onDrop called with acceptedFiles:', acceptedFiles);
-      
+
       // Clear any previous error
       setErrorMessage('');
-      
+
       // Check file size manually
       if (acceptedFiles && acceptedFiles.length > 0) {
         const MAX_SIZE = 2 * 1024 * 1024; // 2MB
         const oversizedFile = acceptedFiles.find(file => file.size > MAX_SIZE);
-        
+
         if (oversizedFile) {
           const fileSizeMB = (oversizedFile.size / (1024 * 1024)).toFixed(1);
           setErrorMessage(`File size is ${fileSizeMB}MB. Maximum allowed size is 2MB.`);
@@ -35,23 +34,22 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
 
         // If all files are valid, proceed
         console.log('File is valid, processing...');
-        setFile(acceptedFiles);
         fieldChange(acceptedFiles);
         setFileUrl(convertFileToUrl(acceptedFiles[0]));
       }
     },
-    [file]
+    [fieldChange, setFileUrl]
   );
 
   const onDropRejected = useCallback(
-    (rejectedFiles: any[]) => {
-      console.log('onDropRejected called with:', rejectedFiles);
-      
-      if (rejectedFiles && rejectedFiles.length > 0) {
-        rejectedFiles.forEach((file) => {
-          console.log('Rejected file:', file);
-          if (file.errors) {
-            file.errors.forEach((error: any) => {
+    (fileRejections: unknown) => {
+      console.log('onDropRejected called with:', fileRejections);
+
+      if (fileRejections && Array.isArray(fileRejections) && fileRejections.length > 0) {
+        fileRejections.forEach((rejection: any) => {
+          console.log('Rejected file:', rejection.file);
+          if (rejection.errors) {
+            rejection.errors.forEach((error: { code: string }) => {
               console.log('File error:', error);
               if (error.code === 'file-too-large') {
                 setErrorMessage('File size exceeds 2MB limit. Please choose a smaller file.');
@@ -87,7 +85,7 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
           <p className="text-red-500 text-sm font-medium">{errorMessage}</p>
         </div>
       )}
-      
+
       <div
         {...getRootProps()}
         className="flex flex-center flex-col bg-dark-3 rounded-xl cursor-pointer">

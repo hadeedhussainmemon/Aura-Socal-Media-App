@@ -12,6 +12,7 @@ import {
   useGetAdminAllPosts,
   useAdminDeletePost
 } from "@/lib/react-query/queriesAndMutations";
+import { IPost } from "@/types";
 
 interface AdminUser {
   id: string;
@@ -112,7 +113,7 @@ const AdminUserManagement = () => {
             description: `${userName} has been ${resultAction}.`,
           });
         },
-        onError: (error: any) => {
+        onError: (error: { message?: string }) => {
           toast({
             title: "Error",
             description: error.message || `Failed to ${action} user.`,
@@ -132,7 +133,7 @@ const AdminUserManagement = () => {
             description: "Post has been deleted.",
           });
         },
-        onError: (error: any) => {
+        onError: (error: { message?: string }) => {
           toast({
             title: "Error",
             description: error.message || "Failed to delete post.",
@@ -301,7 +302,7 @@ const AdminUserManagement = () => {
     return (
       <>
         <div className="grid gap-4">
-          {postsData.posts.map((post: any, index) => (
+          {postsData.posts.map((post: IPost, index: number) => (
             <motion.div
               key={post._id || post.id}
               initial={{ opacity: 0, y: 20 }}
@@ -321,7 +322,7 @@ const AdminUserManagement = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <img
-                      src={post.creator.imageUrl || post.creator.image_url || "/assets/icons/profile-placeholder.svg"}
+                      src={post.creator.imageUrl || "/assets/icons/profile-placeholder.svg"}
                       alt={post.creator.name}
                       className="w-6 h-6 rounded-full"
                     />

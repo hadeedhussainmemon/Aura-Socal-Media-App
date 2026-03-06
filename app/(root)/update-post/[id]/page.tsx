@@ -6,13 +6,14 @@ import { useParams } from "next/navigation";
 import PostForm from "@/components/forms/PostForm";
 import Loader from "@/components/shared/Loader";
 import { getPostByIdServer } from "@/lib/actions/post.actions";
+import { IPost } from "@/types";
 
 const EditPost = () => {
   const params = useParams();
   const id = params?.id;
   const postId = Array.isArray(id) ? id[0] : id;
 
-  const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<IPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

@@ -9,22 +9,21 @@ type ProfileUploaderProps = {
 };
 
 const ProfileUploader = ({ fieldChange, mediaUrl }: ProfileUploaderProps) => {
-  const [file, setFile] = useState<File[]>([]);
   const [fileUrl, setFileUrl] = useState<string>(mediaUrl);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   const onDrop = useCallback(
     (acceptedFiles: FileWithPath[]) => {
       console.log('Profile onDrop called with acceptedFiles:', acceptedFiles);
-      
+
       // Clear any previous error
       setErrorMessage('');
-      
+
       // Check file size manually
       if (acceptedFiles && acceptedFiles.length > 0) {
         const MAX_SIZE = 2 * 1024 * 1024; // 2MB
         const oversizedFile = acceptedFiles.find(file => file.size > MAX_SIZE);
-        
+
         if (oversizedFile) {
           const fileSizeMB = (oversizedFile.size / (1024 * 1024)).toFixed(1);
           setErrorMessage(`File size is ${fileSizeMB}MB. Maximum allowed size is 2MB.`);
@@ -34,23 +33,22 @@ const ProfileUploader = ({ fieldChange, mediaUrl }: ProfileUploaderProps) => {
 
         // If all files are valid, proceed
         console.log('Profile file is valid, processing...');
-        setFile(acceptedFiles);
         fieldChange(acceptedFiles);
         setFileUrl(convertFileToUrl(acceptedFiles[0]));
       }
     },
-    [file]
+    [fieldChange, setFileUrl]
   );
 
   const onDropRejected = useCallback(
-    (rejectedFiles: any[]) => {
+    (rejectedFiles: { errors: { code: string }[] }[]) => {
       console.log('Profile onDropRejected called with:', rejectedFiles);
-      
+
       if (rejectedFiles && rejectedFiles.length > 0) {
         rejectedFiles.forEach((file) => {
           console.log('Rejected profile file:', file);
           if (file.errors) {
-            file.errors.forEach((error: any) => {
+            file.errors.forEach((error: { code: string }) => {
               console.log('Profile file error:', error);
               if (error.code === 'file-too-large') {
                 setErrorMessage('File size exceeds 2MB limit. Please choose a smaller file.');
@@ -86,7 +84,7 @@ const ProfileUploader = ({ fieldChange, mediaUrl }: ProfileUploaderProps) => {
           <p className="text-red-500 text-sm font-medium">{errorMessage}</p>
         </div>
       )}
-      
+
       <div {...getRootProps()}>
         <input {...getInputProps()} className="cursor-pointer" />
 

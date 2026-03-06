@@ -66,7 +66,7 @@ export default function UpdatePassword() {
         router.push('/sign-in');
       }, 3000);
     },
-    onError: (error: any) => {
+    onError: (error: Error | { message?: string }) => {
       toast({
         title: "Error updating password",
         description: error.message || "Please try again.",

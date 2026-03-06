@@ -8,9 +8,10 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
       gcTime: 1000 * 60 * 10, // 10 minutes (garbage collection time - replaces cacheTime)
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Don't retry on 404 or auth errors
-        if (error?.status === 404 || error?.status === 401) {
+        const err = error as { status?: number };
+        if (err?.status === 404 || err?.status === 401) {
           return false
         }
         // Retry up to 3 times for other errors

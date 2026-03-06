@@ -6,13 +6,12 @@ import AuthProvider from '../src/context/AuthProvider'
 import { NotificationProvider } from '../src/context/NotificationContext'
 import NotificationManager from '../src/components/NotificationManager'
 import { Toaster } from '../src/components/ui/toaster'
-import '../src/lib/utils/suppressAuthWarnings'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Aura',
-  description: 'A social media application powered by Next.js and Supabase',
+  description: 'A modern social media application powered by Next.js, MongoDB, and NextAuth',
   icons: {
     icon: '/assets/images/tablogo.ico',
   },

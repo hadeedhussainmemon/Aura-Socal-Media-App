@@ -18,7 +18,7 @@ const LeftSidebar = () => {
   const isLoading = status === "loading";
 
   // Future Admin Check placeholder
-  let hasAdminAccess: boolean = false;
+  const hasAdminAccess: boolean = false;
 
   const handleSignOut = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
@@ -52,7 +52,7 @@ const LeftSidebar = () => {
           </div>
         ) : (
           <>
-            <Link href={`/profile/${(user as any).id || (user as any)._id || user.email}`} className="flex gap-3 items-center group">
+            <Link href={`/profile/${user.id || (user as { _id?: string })._id || user.email}`} className="flex gap-3 items-center group">
               <div className="relative p-0.5 rounded-full bg-gradient-to-tr from-primary-500 to-purple-500 group-hover:scale-105 transition-transform duration-300">
                 <img
                   src={user.image || "/assets/icons/profile-placeholder.svg"}
@@ -62,7 +62,7 @@ const LeftSidebar = () => {
               </div>
               <div className="flex flex-col">
                 <p className="body-bold group-hover:text-primary-500 transition-colors">{user.name}</p>
-                <p className="small-regular text-light-3">@{(user as any).username || user.name?.split(' ')[0]}</p>
+                <p className="small-regular text-light-3">@{(user as { username?: string }).username || user.name?.split(' ')[0]}</p>
               </div>
             </Link>
             {/* Notification Bell in Sidebar */}

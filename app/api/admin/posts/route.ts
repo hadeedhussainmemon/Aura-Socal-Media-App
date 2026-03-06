@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAdminAccess } from '@/lib/supabase/api';
-import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/auth';
+import { getAdminAllPosts } from '@/lib/actions/post.actions';
+import { checkAdminAccess } from '@/lib/actions/user.actions';
 
 // GET /api/admin/posts - List all posts
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Check admin access
-    const hasAdminAccess = await checkAdminAccess();
+    const hasAdminAccess = await checkAdminAccess(session.user.id);
     if (!hasAdminAccess) {
       return NextResponse.json(
         { error: 'Access denied. Admin privileges required.' },
@@ -14,58 +20,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
 
-    const offset = (page - 1) * limit;
-
-    let query = supabase
-      .from('posts')
-      .select(`
-        id,
-        caption,
-        image_url,
-        location,
-        tags,
-        created_at,
-        updated_at,
-        creator:users!creator_id (
-          id,
-          name,
-          username,
-          image_url
-        )
-      `)
-      .order('created_at', { ascending: false });
-
-    // Add search filter if provided
-    if (search) {
-      query = query.or(`caption.ilike.%${search}%,location.ilike.%${search}%,tags.ilike.%${search}%`);
-    }
-
-    // Add pagination
-    query = query.range(offset, offset + limit - 1);
-
-    const { data: posts, error, count } = await query;
-
-    if (error) {
-      console.error('Error fetching posts:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch posts' },
-        { status: 500 }
-      );
-    }
+    const { posts, total } = await getAdminAllPosts(page, limit, search);
 
     return NextResponse.json({
       posts,
       pagination: {
         page,
         limit,
-        total: count,
-        totalPages: Math.ceil((count || 0) / limit)
+        total,
+        totalPages: Math.ceil(total / limit)
       }
     });
 

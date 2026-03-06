@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import PostStats from "./PostStats";
+import { IPost } from "@/types";
 
 type GridPostListProps = {
-  posts: any[]; // Posts array
+  posts: IPost[]; // Posts array
   showUser?: boolean;
   showStats?: boolean;
   showComments?: boolean;
@@ -23,10 +24,10 @@ const GridPostList = ({
   return (
     <ul className="grid-container">
       {posts.map((post) => (
-        <li key={post.id || post.$id} className="relative min-w-80 h-80">
-          <Link href={`/posts/${post.id || post.$id}`} className="grid-post_link">
+        <li key={post.id || post._id} className="relative min-w-80 h-80">
+          <Link href={`/posts/${post.id || post._id}`} className="grid-post_link">
             <img
-              src={post.image_url || post.imageUrl}
+              src={post.imageUrl}
               alt="post"
               className="h-full w-full object-cover"
             />
@@ -37,7 +38,7 @@ const GridPostList = ({
               <div className="flex items-center justify-start gap-2 flex-1">
                 <img
                   src={
-                    post.creator?.image_url || post.creator?.imageUrl ||
+                    post.creator?.imageUrl ||
                     "/assets/icons/profile-placeholder.svg"
                   }
                   alt="creator"
@@ -49,11 +50,11 @@ const GridPostList = ({
             {showStats && (
               <PostStats
                 post={post}
-                userId={user?.id || (user as any)?._id || ""}
+                userId={user?.id || (user as { _id?: string })?._id || ""}
                 showComments={showComments}
                 onCommentClick={() => {
                   // For grid view, navigate to post detail page for comments
-                  window.location.href = `/posts/${post.id || post.$id}`;
+                  window.location.href = `/posts/${post.id || post._id}`;
                 }}
               />
             )}

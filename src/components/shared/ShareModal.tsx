@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { IPost } from "@/types";
 
 type ShareModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  post: any;
+  post: IPost;
   isProfile?: boolean;
 };
 
 const ShareModal = ({ isOpen, onClose, post, isProfile = false }: ShareModalProps) => {
   const [copied, setCopied] = useState(false);
-  
+
 
   const postUrl = isProfile
     ? post.url || `${typeof window !== 'undefined' ? window.location.origin : ''}/shared-profile/${post.id}`
@@ -109,7 +109,7 @@ const ShareModal = ({ isOpen, onClose, post, isProfile = false }: ShareModalProp
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
@@ -166,11 +166,10 @@ const ShareModal = ({ isOpen, onClose, post, isProfile = false }: ShareModalProp
             />
             <button
               onClick={handleCopyLink}
-              className={`px-3 py-1 rounded text-sm transition-colors ${
-                copied 
-                  ? 'bg-green-600 text-white' 
+              className={`px-3 py-1 rounded text-sm transition-colors ${copied
+                  ? 'bg-green-600 text-white'
                   : 'bg-primary-500 hover:bg-primary-600 text-white'
-              }`}
+                }`}
             >
               {copied ? 'Copied!' : 'Copy'}
             </button>

@@ -15,6 +15,8 @@ import { PRIVACY_SETTINGS } from "@/constants";
 import { getUserByIdServer } from "@/lib/actions/user.actions";
 import { getUserPostsServer } from "@/lib/actions/post.actions";
 
+import { IPost, IUser } from "@/types";
+
 interface StabBlockProps {
   value: string | number;
   label: string;
@@ -40,8 +42,8 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
 
   const id = params?.id;
 
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<IUser | null>(null);
+  const [userPosts, setUserPosts] = useState<IPost[]>([]);
   const [isUserLoading, setIsUserLoading] = useState(true);
   const [userError, setUserError] = useState(false);
 
@@ -192,8 +194,8 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
           <Button
             type="button"
             className={`h-10 px-4 text-light-1 flex-center gap-2 rounded-lg flex-1 ${isCurrentlyFollowing
-                ? "bg-dark-4 hover:bg-dark-3"
-                : "bg-primary-500 hover:bg-primary-600"
+              ? "bg-dark-4 hover:bg-dark-3"
+              : "bg-primary-500 hover:bg-primary-600"
               }`}
             onClick={handleFollowToggle}
             disabled={isFollowingLoading}

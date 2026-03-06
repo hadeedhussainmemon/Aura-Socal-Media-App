@@ -12,11 +12,11 @@ if (!MONGODB_URI) {
  * during API Route usage.
  */
 
-// @ts-ignore
+// @ts-expect-error - cached is not on global
 let cached = global.mongoose;
 
 if (!cached) {
-    // @ts-ignore
+    // @ts-expect-error - cached is not on global
     cached = global.mongoose = { conn: null, promise: null };
 }
 

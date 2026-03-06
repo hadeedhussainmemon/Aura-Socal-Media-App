@@ -16,9 +16,10 @@ import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useUpdatePost, useCreatePost } from "@/lib/react-query/queriesAndMutations";
 import { POST_CATEGORIES } from "@/constants";
+import { IPost } from "@/types";
 
 type PostFormNextJSProps = {
-  post?: any; // Post data from Supabase
+  post?: IPost; // Post data from MongoDB
   action: "Create" | "Update";
 };
 
@@ -33,7 +34,7 @@ const PostFormNextJS = ({ post, action }: PostFormNextJSProps) => {
       caption: post ? post?.caption : "",
       file: [],
       location: post ? post.location : "",
-      tags: post ? post.tags.join(",") : "",
+      tags: post ? post.tags?.join(",") || "" : "",
       category: post ? post.category : "general",
     },
   });
@@ -150,7 +151,7 @@ const PostFormNextJS = ({ post, action }: PostFormNextJSProps) => {
               <FormControl>
                 <FileUploader
                   fieldChange={field.onChange}
-                  mediaUrl={post?.imageUrl}
+                  mediaUrl={post?.imageUrl || ""}
                 />
               </FormControl>
               <FormMessage className="shad-form_message" />

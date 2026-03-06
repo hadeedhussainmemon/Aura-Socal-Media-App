@@ -33,7 +33,7 @@ const NotificationBell = () => {
     if (!user) return;
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`/api/users/${user.id || (user as any)._id}/notifications`);
+        const res = await fetch(`/api/users/${user.id || (user as { _id?: string })._id}/notifications`);
         if (res.ok) {
           const data = await res.json();
           setNotifications(data || []);
@@ -59,7 +59,7 @@ const NotificationBell = () => {
       const unreadIds = notifications.filter(n => !n.read).map(n => n.id || n._id);
       if (unreadIds.length > 0) {
         try {
-          await fetch(`/api/users/${user.id || (user as any)._id}/notifications/read`, {
+          await fetch(`/api/users/${user.id || (user as { _id?: string })._id}/notifications/read`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids: unreadIds })
@@ -190,7 +190,7 @@ const NotificationBell = () => {
                 </motion.div>
               ) : (
                 <div className="divide-y divide-dark-4/30">
-                  {notifications.map((n: any, index: number) => (
+                  {notifications.map((n: Notification, index: number) => (
                     <motion.div
                       key={n.id || n._id}
                       initial={{ opacity: 0, x: -20 }}

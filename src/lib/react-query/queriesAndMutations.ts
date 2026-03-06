@@ -31,6 +31,7 @@ import {
   followUserServer,
   unfollowUserServer,
   isFollowingServer,
+  getFollowersCountServer,
   getFollowingCountServer,
   getAdminStats,
   checkAdminAccess,
@@ -68,6 +69,7 @@ import {
 
 import { INewPost, IUpdatePost, IUpdateUser } from "@/types";
 import { notificationService } from "../utils/notificationService";
+import { QUERY_KEYS } from "./queryKeys";
 
 export const useCreatePost = () => {
   const queryClient = useQueryClient();
@@ -77,25 +79,22 @@ export const useCreatePost = () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
       });
-      // Invalidate following feed so new posts appear in followers' feeds
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_FOLLOWING_FEED],
       });
 
-      // Create notifications for followers when a new post is created
       if (data && variables.userId) {
         try {
           const user = await getCurrentUserServer(variables.userId);
           if (user) {
             await notificationService.createNewPostNotifications(
-              data?._id || data?.id,
+              (data as unknown as { _id: string; id: string })._id || (data as unknown as { _id: string; id: string }).id,
               variables.userId,
               user.name || user.username || 'Unknown User',
               user.image || user.imageUrl || '',
               variables.caption || 'New post'
             );
 
-            // Invalidate notifications for all followers of the post creator
             queryClient.invalidateQueries({
               queryKey: [QUERY_KEYS.GET_NOTIFICATIONS],
             });
@@ -107,11 +106,11 @@ export const useCreatePost = () => {
     },
   });
 };
+
 export const useUpdatePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ postId, tags, ...postData }: IUpdatePost) => {
-      // Convert tags string to array for API
       const tagsArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
       return updatePostServer(postId, {
         ...postData,
@@ -119,28 +118,28 @@ export const useUpdatePost = () => {
       });
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.id],
-      });
+      if (data) {
+        queryClient.setQueryData([QUERY_KEYS.GET_POST_BY_ID, (data as { id: string }).id], data);
+      }
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_POSTS],
       });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
       });
-      // Invalidate following feed so updated posts reflect in followers' feeds
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_FOLLOWING_FEED],
       });
     },
   });
 };
+
 export const useGetRecentPosts = () => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
     queryFn: getRecentPostsServer,
     staleTime: 1000 * 60 * 2, // 2 minutes
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: unknown) => {
       console.log('Recent posts query failed:', error);
       return failureCount < 2;
     },
@@ -154,12 +153,12 @@ export const useGetFollowingFeed = (page: number = 1, limit: number = 20) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_FOLLOWING_FEED, page],
     queryFn: () => {
-      const userId = (session?.user as any)?.id || (session?.user as any)?._id;
+      const userId = (session?.user as { id?: string; _id?: string })?.id || (session?.user as { id?: string; _id?: string })?._id || "";
       return getFollowingFeedServer(userId, page, limit);
     },
     enabled: !!session?.user,
     staleTime: 1000 * 60 * 1, // 1 minute (shorter than recent posts for more freshness)
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: unknown) => {
       console.log('Following feed query failed:', error);
       return failureCount < 2;
     },
@@ -181,10 +180,8 @@ export const useLikePost = () => {
       postId: string;
       userId: string;
     }) => likePostServer(postId, userId), // Updated to match our MongoDB API
-    onSuccess: async (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID],
-      });
+    onSuccess: async (_: unknown, variables: { postId: string; userId: string }) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_POST_BY_ID, variables.postId] });
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
       });
@@ -195,7 +192,6 @@ export const useLikePost = () => {
         queryKey: [QUERY_KEYS.GET_CURRENT_USER],
       });
 
-      // Create like notification
       try {
         const post = await getPostByIdServer(variables.postId);
         const user = await getCurrentUserServer(variables.userId);
@@ -209,7 +205,6 @@ export const useLikePost = () => {
             user.image || user.imageUrl || ''
           );
 
-          // Invalidate notifications for the post owner
           queryClient.invalidateQueries({
             queryKey: [QUERY_KEYS.GET_NOTIFICATIONS, post.creator.id],
           });
@@ -292,10 +287,11 @@ export const useDeleteSavedPost = () => {
   });
 };
 export const useGetCurrentUser = (enabled = true) => {
+  const { data: session } = useSession();
   return useQuery({
     queryKey: [QUERY_KEYS.GET_CURRENT_USER],
     queryFn: () => {
-      const userId = (session?.user as any)?.id || (session?.user as any)?._id;
+      const userId = (session?.user as { id?: string; _id?: string })?.id || (session?.user as { id?: string; _id?: string })?._id || "";
       return getCurrentUserServer(userId);
     },
     enabled: enabled,
@@ -318,8 +314,8 @@ export const useGetPostById = (postId?: string) => {
     queryFn: () => getPostByIdServer(postId!),
     enabled: !!postId,
     staleTime: 1000 * 60 * 3, // 3 minutes
-    retry: (failureCount, error: any) => {
-      console.log('Get post by ID failed:', error);
+    retry: (failureCount, error: unknown) => {
+      console.log('Infinite scroll query failed:', error);
       return failureCount < 2;
     },
     refetchOnWindowFocus: true,
@@ -348,9 +344,6 @@ export const useGetUserPosts = (userId?: string) => {
     enabled: !!userId,
   });
 };
-// @ts-ignore
-import { InfiniteData } from "@tanstack/react-query";
-
 export const useGetPosts = () => {
   return useInfiniteQuery({
     queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
@@ -363,11 +356,11 @@ export const useGetPosts = () => {
     },
     initialPageParam: undefined,
     staleTime: 1000 * 60 * 2, // 2 minutes
-    retry: (failureCount, error: any) => {
-      console.log('Infinite posts query failed:', error);
-      // Don't retry on auth errors
-      if (error?.status === 401 || error?.message?.includes('session_missing')) {
-        return false;
+    retry: (failureCount, error: unknown) => {
+      // Don't retry on 404 or auth errors
+      const err = error as { status?: number };
+      if (err?.status === 404 || err?.status === 401) {
+        return false
       }
       return failureCount < 2;
     },
@@ -386,7 +379,7 @@ export const useSearchPosts = (searchTerm: string) => {
     queryFn: () => searchPostsServer(searchTerm),
     enabled: !!searchTerm,
     staleTime: 1000 * 60 * 1, // 1 minute for search results
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: unknown) => {
       console.log('Search posts query failed:', error);
       return failureCount < 2;
     },
@@ -417,10 +410,11 @@ export const useGetAdminStats = () => {
   });
 };
 
-export const useCheckAdminAccess = () => {
+export const useCheckAdminAccess = (userId: string) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.CHECK_ADMIN_ACCESS],
-    queryFn: checkAdminAccess,
+    queryKey: [QUERY_KEYS.CHECK_ADMIN_ACCESS, userId],
+    queryFn: () => checkAdminAccess(userId),
+    enabled: !!userId,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 };
@@ -587,7 +581,7 @@ export const useFollowUser = () => {
 
   return useMutation({
     mutationFn: (followingId: string) => {
-      const followerId = (session?.user as any)?.id || (session?.user as any)?._id || "";
+      const followerId = (session?.user as { id?: string; _id?: string })?.id || (session?.user as { id?: string; _id?: string })?._id || "";
       return followUserServer(followerId, followingId);
     },
     onMutate: async (userId) => {
@@ -658,9 +652,10 @@ export const useFollowUser = () => {
 
 export const useUnfollowUser = () => {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
   return useMutation({
     mutationFn: (followingId: string) => {
-      const followerId = (session?.user as any).id || (session?.user as any)._id || "";
+      const followerId = (session?.user as { id?: string; _id?: string })?.id || (session?.user as { id?: string; _id?: string })?._id || "";
       return unfollowUserServer(followerId, followingId);
     },
     onMutate: async (userId) => {
@@ -732,7 +727,7 @@ export const useIsFollowing = (userId: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.IS_FOLLOWING, userId],
     queryFn: () => {
-      const followerId = (session?.user as any)?.id || (session?.user as any)?._id || "";
+      const followerId = (session?.user as { id?: string; _id?: string })?.id || (session?.user as { id?: string; _id?: string })?._id || "";
       return isFollowingServer(followerId, userId);
     },
     enabled: !!session?.user && !!userId,
@@ -790,7 +785,7 @@ export const useMarkNotificationAsRead = () => {
   return useMutation({
     mutationFn: (notificationId: string) =>
       notificationService.markNotificationAsRead(notificationId),
-    onSuccess: (_, notificationId) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_NOTIFICATIONS],
       });
@@ -806,13 +801,13 @@ export const useMarkAllNotificationsAsRead = () => {
 
   return useMutation({
     mutationFn: (userId: string) => notificationService.markAllNotificationsAsRead(userId),
-    onSuccess: (_, userId) => {
+    onSuccess: () => {
       // Invalidate notifications queries to update read status
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_NOTIFICATIONS, userId],
+        queryKey: [QUERY_KEYS.GET_NOTIFICATIONS],
       });
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_UNREAD_COUNT, userId],
+        queryKey: [QUERY_KEYS.GET_UNREAD_COUNT],
       });
     },
   });
@@ -891,7 +886,7 @@ export const useUpdateComment = () => {
     mutationFn: ({ commentId, content }: { commentId: string; content: string }) =>
       updateCommentServer(commentId, content),
     onSuccess: () => {
-      // Find which post this comment belongs to and invalidate its comments
+      // Invalidate all comment queries to refresh the list
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_COMMENTS],
       });
@@ -925,7 +920,7 @@ export const useLikeComment = () => {
   return useMutation({
     mutationFn: ({ commentId, userId }: { commentId: string; userId: string }) =>
       likeCommentServer(commentId, userId),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_COMMENTS],
       });
@@ -938,7 +933,7 @@ export const useUnlikeComment = () => {
   return useMutation({
     mutationFn: ({ commentId, userId }: { commentId: string; userId: string }) =>
       unlikeCommentServer(commentId, userId),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_COMMENTS],
       });

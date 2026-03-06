@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAdminAccess } from '@/lib/supabase/api';
-import { createClient } from '@/lib/supabase/server';
+import { auth } from '@/auth';
+import { adminDeletePost } from '@/lib/actions/post.actions';
+import { checkAdminAccess } from '@/lib/actions/user.actions';
 
 // DELETE /api/admin/posts/[id] - Delete any post
 export async function DELETE(
@@ -9,8 +10,13 @@ export async function DELETE(
 ) {
   const resolvedParams = await params;
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Check admin access
-    const hasAdminAccess = await checkAdminAccess();
+    const hasAdminAccess = await checkAdminAccess(session.user.id);
     if (!hasAdminAccess) {
       return NextResponse.json(
         { error: 'Access denied. Admin privileges required.' },
@@ -18,63 +24,9 @@ export async function DELETE(
       );
     }
 
-    const supabase = await createClient();
+    const { success } = await adminDeletePost(resolvedParams.id);
 
-    // Check if post exists
-    const { data: post, error: fetchError } = await supabase
-      .from('posts')
-      .select('id, creator_id, image_url')
-      .eq('id', resolvedParams.id)
-      .single();
-
-    if (fetchError || !post) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      );
-    }
-
-    // Delete related data first (comments, likes, saves)
-    const deletePromises = [
-      supabase.from('comments').delete().eq('post_id', resolvedParams.id),
-      supabase.from('likes').delete().eq('post_id', resolvedParams.id),
-      supabase.from('saves').delete().eq('post_id', resolvedParams.id)
-    ];
-
-    try {
-      await Promise.all(deletePromises);
-    } catch (relatedDeleteError) {
-      console.warn('Some related data could not be deleted:', relatedDeleteError);
-      // Continue with post deletion even if some related data fails
-    }
-
-    // Delete the post image from storage if it exists
-    if (post.image_url) {
-      try {
-        // Extract filename from URL
-        const fileName = post.image_url.split('/').pop();
-        if (fileName) {
-          const { error: storageError } = await supabase.storage
-            .from('files')
-            .remove([fileName]);
-
-          if (storageError) {
-            console.warn('Could not delete image from storage:', storageError);
-          }
-        }
-      } catch (storageDeleteError) {
-        console.warn('Error deleting image from storage:', storageDeleteError);
-      }
-    }
-
-    // Finally delete the post
-    const { error: deleteError } = await supabase
-      .from('posts')
-      .delete()
-      .eq('id', resolvedParams.id);
-
-    if (deleteError) {
-      console.error('Error deleting post:', deleteError);
+    if (!success) {
       return NextResponse.json(
         { error: 'Failed to delete post' },
         { status: 500 }

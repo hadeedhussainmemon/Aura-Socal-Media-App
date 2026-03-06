@@ -12,6 +12,7 @@ import PostStats from "@/components/shared/PostStats";
 import GridPostList from "@/components/shared/GridPostList";
 import Comments from "@/components/shared/Comments";
 import { getPostByIdServer, getUserPostsServer } from "@/lib/actions/post.actions";
+import { IPost } from "@/types";
 
 const PostDetails = () => {
   const router = useRouter();
@@ -22,8 +23,8 @@ const PostDetails = () => {
   const { data: session } = useSession();
   const user = session?.user;
 
-  const [post, setPost] = useState<any>(null);
-  const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
+  const [post, setPost] = useState<IPost | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<IPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -37,7 +38,7 @@ const PostDetails = () => {
 
         if (fetchedPost?.creator?._id) {
           const userPosts = await getUserPostsServer(fetchedPost.creator._id);
-          const filteredPosts = userPosts?.filter((p: any) => p._id !== postId) || [];
+          const filteredPosts = userPosts?.filter((p: IPost) => p._id !== postId) || [];
           setRelatedPosts(filteredPosts);
         }
       } catch (error) {
@@ -162,7 +163,7 @@ const PostDetails = () => {
             <div className="flex flex-col flex-1 w-full small-medium lg:base-regular">
               <p>{post?.caption}</p>
               <ul className="flex gap-1 mt-2">
-                {post?.tags.map((tag: string, index: string) => (
+                {post?.tags?.map((tag: string, index: number) => (
                   <li
                     key={`${tag}${index}`}
                     className="text-light-3 small-regular">

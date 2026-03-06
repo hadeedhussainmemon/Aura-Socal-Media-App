@@ -115,7 +115,7 @@ export async function getFollowingCountServer(userId: string) {
     }
 }
 
-export async function updateUserServer(userId: string, userData: any) {
+export async function updateUserServer(userId: string, userData: Record<string, unknown>) {
     try {
         await connectToDatabase();
 
@@ -158,7 +158,7 @@ export async function checkAdminAccess(userId: string) {
         await connectToDatabase();
         const user = await User.findById(userId);
         return user?.role === 'admin';
-    } catch (error) {
+    } catch {
         return false;
     }
 }
@@ -168,7 +168,7 @@ export async function getAdminUsers() {
         await connectToDatabase();
         const admins = await User.find({ role: 'admin' }).select('name username imageUrl _id');
         return JSON.parse(JSON.stringify(admins));
-    } catch (error) {
+    } catch {
         return [];
     }
 }
@@ -178,7 +178,7 @@ export async function addAdminUser(email: string) {
         await connectToDatabase();
         const user = await User.findOneAndUpdate({ email }, { role: 'admin' }, { new: true });
         return !!user;
-    } catch (error) {
+    } catch {
         return false;
     }
 }
@@ -188,7 +188,7 @@ export async function removeAdminUser(userId: string) {
         await connectToDatabase();
         const user = await User.findByIdAndUpdate(userId, { role: 'user' }, { new: true });
         return !!user;
-    } catch (error) {
+    } catch {
         return false;
     }
 }
@@ -214,6 +214,7 @@ export async function getAdminAllUsers(page = 1, limit = 10, search = '') {
 
         return JSON.parse(JSON.stringify({ users, total }));
     } catch (error) {
+        console.error("Failed to get all admin users", error);
         return { users: [], total: 0 };
     }
 }
@@ -231,7 +232,7 @@ export async function toggleUserActivation(userId: string) {
         user.isDeactivated = !user.isDeactivated;
         await user.save();
         return true;
-    } catch (error) {
+    } catch {
         return false;
     }
 }
@@ -241,7 +242,7 @@ export async function deactivateUser(userId: string) {
         await connectToDatabase();
         await User.findByIdAndUpdate(userId, { isDeactivated: true });
         return true;
-    } catch (error) {
+    } catch {
         return false;
     }
 }
@@ -266,6 +267,7 @@ export async function sendPasswordResetEmail(email: string) {
 
 export async function updateUserPassword(newPassword: string) {
     // This would normally be done via a secure token route, placeholder for now
+    console.log("Updating password placeholder for:", newPassword.substring(0, 3) + "...");
     return true;
 }
 
@@ -278,7 +280,7 @@ export async function getFollowers(userId: string) {
             select: 'name username imageUrl _id'
         });
         return JSON.parse(JSON.stringify(user?.followers || []));
-    } catch (error) {
+    } catch {
         return [];
     }
 }
@@ -292,7 +294,7 @@ export async function getFollowing(userId: string) {
             select: 'name username imageUrl _id'
         });
         return JSON.parse(JSON.stringify(user?.following || []));
-    } catch (error) {
+    } catch {
         return [];
     }
 }

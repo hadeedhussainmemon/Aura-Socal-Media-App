@@ -38,7 +38,7 @@ const CommentForm = ({
       await createComment({
         content: comment.trim(),
         postId,
-        userId: user.id || (user as any)._id,
+        userId: user.id || (user as { _id?: string })._id,
         parentId,
       });
 
@@ -52,7 +52,7 @@ const CommentForm = ({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e as any);
+      handleSubmit(e as unknown as React.FormEvent);
     }
   };
 

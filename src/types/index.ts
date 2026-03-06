@@ -45,12 +45,38 @@ export type IUpdatePost = {
 
 export type IUser = {
   id: string;
+  _id?: string;
   name: string;
   username: string;
   email: string;
   imageUrl: string;
   bio: string;
+  role?: string;
+  isDeactivated?: boolean;
+  followers?: string[];
+  following?: string[];
+  savedPosts?: string[];
   privacy_setting?: 'public' | 'private' | 'followers_only';
+};
+
+export type IPost = {
+  id: string;
+  _id?: string;
+  caption: string;
+  imageUrl: string;
+  location?: string;
+  tags?: string[];
+  creator: IUser;
+  likes: string[];
+  saves?: string[];
+  comments: string[];
+  category: 'general' | 'announcement' | 'question';
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    likes?: number;
+    comments?: number;
+  };
 };
 
 export type INewUser = {
@@ -68,26 +94,21 @@ export type INewComment = {
 
 export type IComment = {
   id: string;
+  _id?: string;
   content: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-  post_id: string;
-  parent_id: string | null;
-  is_edited: boolean;
+  createdAt: string;
+  updatedAt: string;
   user: IUser;
-  likes: Array<{ user_id: string }>;
+  post: string;
+  parentComment: string | null;
+  likes: string[];
   replies?: IComment[];
-  _count?: {
-    likes: number;
-    replies: number;
-  };
 };
 
 export type DocumentList = {
   documents: {
     $id: string; // Cursor or identifier
-    [key: string]: any; // Additional fields for each document
+    [key: string]: unknown; // Additional fields for each document
   }[];
   total?: number; // Optional: total number of documents
 };

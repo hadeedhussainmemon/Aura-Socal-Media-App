@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useSession } from "next-auth/react";
 import { NotificationData } from '../components/shared/NotificationPopup';
 import { notificationService } from '../lib/utils/notificationService';
@@ -15,10 +15,10 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType>({
   currentNotification: null,
-  showNotification: () => {},
-  hideNotification: () => {},
+  showNotification: () => { },
+  hideNotification: () => { },
   unreadCount: 0,
-  refreshUnreadCount: () => {},
+  refreshUnreadCount: () => { },
 });
 
 export const useNotificationContext = () => useContext(NotificationContext);
@@ -31,7 +31,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
   const { data: session, status } = useSession();
   const user = session?.user;
   const isAuthenticated = status === "authenticated";
-  
+
   const [currentNotification, setCurrentNotification] = useState<NotificationData | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -52,27 +52,29 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
   };
 
   // Refresh unread count
-  const refreshUnreadCount = async () => {
-    if (!user?.id && !(user as any)?._id) return;
-    
+  const refreshUnreadCount = useCallback(async () => {
+    const userId = ((user as { _id?: string })?._id || user?.id) as string;
+    if (!userId) return;
+
     try {
-      const notifications = await notificationService.getUserNotifications((user as any)._id || user.id, 50);
-      const unread = notifications.filter((n: any) => !n.read).length;
+      const notifications = await notificationService.getUserNotifications(userId, 50);
+      const unread = notifications.filter((n: { read: boolean }) => !n.read).length;
       setUnreadCount(unread);
     } catch (error) {
       console.error('Error refreshing unread count:', error);
     }
-  };
+  }, [user]);
 
   // Subscribe to real-time notifications when user is authenticated
   useEffect(() => {
-    if (isAuthenticated && (user?.id || (user as any)?._id)) {
+    const userId = ((user as { _id?: string })?._id || user?.id) as string;
+    if (isAuthenticated && userId) {
       // Subscribe to real-time notifications
-      notificationService.subscribeToNotifications((user as any)._id || user.id);
-      
+      notificationService.subscribeToNotifications(userId);
+
       // Add notification listener
       notificationService.addNotificationListener(handleNewNotification);
-      
+
       // Get initial unread count
       refreshUnreadCount();
 
@@ -82,7 +84,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
         notificationService.unsubscribeFromNotifications();
       };
     }
-  }, [isAuthenticated, user?.id, (user as any)?._id]);
+  }, [isAuthenticated, user, refreshUnreadCount]);
 
   const value: NotificationContextType = {
     currentNotification,

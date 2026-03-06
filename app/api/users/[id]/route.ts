@@ -59,6 +59,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
             const buffer = Buffer.from(bytes);
 
             imageUrl = await new Promise((resolve, reject) => {
+                // eslint-disable-next-line @typescript-eslint/no-require-imports
                 const cloudinary = require('cloudinary').v2;
                 cloudinary.config({
                     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -68,9 +69,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 
                 cloudinary.uploader.upload_stream(
                     { folder: "socialapp_profiles" },
-                    (error: any, result: any) => {
+                    (error: Error | null, result: { secure_url: string } | undefined) => {
                         if (error) reject(error);
-                        else resolve(result.secure_url);
+                        else if (result) resolve(result.secure_url);
+                        else reject(new Error('Cloudinary upload failed'));
                     }
                 ).end(buffer);
             });

@@ -55,7 +55,8 @@ export async function POST(req: Request) {
             const buffer = Buffer.from(bytes);
 
             imageUrl = await new Promise((resolve, reject) => {
-                const cloudinary = require('cloudinary').v2; // Lazy load so not to break edge config
+                // eslint-disable-next-line @typescript-eslint/no-require-imports
+                const cloudinary = require('cloudinary').v2;
                 cloudinary.config({
                     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
                     api_key: process.env.CLOUDINARY_API_KEY,
@@ -64,9 +65,10 @@ export async function POST(req: Request) {
 
                 cloudinary.uploader.upload_stream(
                     { folder: "socialapp_posts" },
-                    (error: any, result: any) => {
+                    (error: Error | null, result: { secure_url: string } | undefined) => {
                         if (error) reject(error);
-                        else resolve(result.secure_url);
+                        else if (result) resolve(result.secure_url);
+                        else reject(new Error('Cloudinary upload failed'));
                     }
                 ).end(buffer);
             });

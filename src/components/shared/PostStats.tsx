@@ -11,9 +11,10 @@ import {
 } from "@/lib/react-query/queriesAndMutations";
 import ShareModal from "./ShareModal";
 import AuthPromptModal from "./AuthPromptModal";
+import { IPost, IUser } from "@/types";
 
 type PostStatsProps = {
-  post: any; // MongoDB Post document
+  post: IPost;
   userId: string;
   onCommentClick?: () => void;
   showComments?: boolean;
@@ -23,9 +24,10 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
   const pathname = usePathname();
 
   // Handle MongoDB post structure
-  const likesList = post.likes ? post.likes.map((like: any) => {
+  const likesList = post.likes ? post.likes.map((like: string | IUser) => {
     // MongoDB structure: likes is an array of IDs or populated objects
-    return like._id || like;
+    if (typeof like === 'string') return like;
+    return (like as IUser)._id || (like as IUser).id;
   }) : [];
 
   const [likes, setLikes] = useState<string[]>(likesList);
@@ -45,13 +47,13 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
   useEffect(() => {
     const checkIfSaved = async () => {
       // Only check saved state if user is authenticated
-      if (userId && (currentUser?.id || (currentUser as any)?._id) && post?._id) {
+      if (userId && (currentUser?.id || currentUser?._id) && post?._id) {
         try {
           // Check if this post is in the saves array for this user
           const savedUsers = post.saves || [];
-          const currentUserId = (currentUser as any)?.id || (currentUser as any)?._id;
+          const currentUserId = currentUser?.id || currentUser?._id;
           const isCurrentUserSaved = savedUsers.some((id: string) =>
-            id.toString() === currentUserId.toString()
+            id.toString() === currentUserId?.toString()
           );
           setIsSaved(isCurrentUserSaved);
         } catch (error) {
@@ -79,7 +81,7 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
       return;
     }
 
-    const postId = post.id || post.$id;
+    const postId = post.id || post._id || "";
     let likesArray = [...likes];
 
     if (likesArray.includes(userId)) {
@@ -107,7 +109,7 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
       return;
     }
 
-    const postId = post.id || post.$id;
+    const postId = (post as IPost).id || (post as IPost)._id || "";
 
     if (isSaved) {
       // If currently saved, unsave it

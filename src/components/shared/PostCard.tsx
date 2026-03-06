@@ -10,8 +10,10 @@ import PostStats from "./PostStats";
 import QuickComment from "./QuickComment";
 import { POST_CATEGORIES } from "@/constants";
 
+import { IPost } from "@/types";
+
 type PostCardProps = {
-  post: any; // MongoDB Post document
+  post: IPost;
 };
 
 const PostCard = ({ post }: PostCardProps) => {
@@ -102,7 +104,7 @@ const PostCard = ({ post }: PostCardProps) => {
         <div className="small-medium lg:base-medium py-5">
           <p>{post.caption}</p>
           <ul className="flex flex-wrap gap-1 mt-2">
-            {post.tags.map((tag: string, index: number) => (
+            {post.tags?.map((tag: string, index: number) => (
               <li key={`${tag}${index}`} className="text-primary-500 small-regular hover:underline cursor-pointer">
                 #{tag}
               </li>
@@ -121,7 +123,7 @@ const PostCard = ({ post }: PostCardProps) => {
 
       <PostStats
         post={post}
-        userId={(user as any)?.id || (user as any)?._id || ""}
+        userId={user?.id || (user as { _id?: string })?._id || ""}
         onCommentClick={handleCommentClick}
       />
 
@@ -129,7 +131,7 @@ const PostCard = ({ post }: PostCardProps) => {
       {showComments && (
         <div className="border-t border-dark-4 pt-4 mt-2">
           <QuickComment
-            postId={post._id}
+            postId={(post._id || post.id) as string}
             onCommentAdded={() => {
               // Optionally refresh post data or show success message
               console.log('Comment added successfully!');

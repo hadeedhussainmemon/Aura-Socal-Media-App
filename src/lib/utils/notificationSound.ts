@@ -5,7 +5,7 @@ export class NotificationSound {
   private audioContext: AudioContext | null = null;
   private sounds: { [key: string]: AudioBuffer } = {};
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): NotificationSound {
     if (!NotificationSound.instance) {
@@ -16,7 +16,7 @@ export class NotificationSound {
 
   private async initAudioContext() {
     if (!this.audioContext && typeof window !== 'undefined') {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     }
   }
 
@@ -93,13 +93,13 @@ export class NotificationSound {
       if (this.sounds[type]) {
         const source = this.audioContext.createBufferSource();
         const gainNode = this.audioContext.createGain();
-        
+
         source.buffer = this.sounds[type];
         gainNode.gain.value = this.getVolumeLevel();
-        
+
         source.connect(gainNode);
         gainNode.connect(this.audioContext.destination);
-        
+
         source.start();
       }
     } catch (error) {
