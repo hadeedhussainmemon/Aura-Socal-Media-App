@@ -107,6 +107,7 @@ const AdminUserManagement = () => {
     if (confirm(confirmMessage)) {
       toggleActivation(userId, {
         onSuccess: (result) => {
+          if (!result) return;
           const resultAction = result.isDeactivated ? "deactivated" : "activated";
           toast({
             title: "Success",

@@ -1,11 +1,11 @@
-import { Session, User as NextAuthUser } from "next-auth";
+import { NextAuthConfig, Session, User as NextAuthUser } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { connectToDatabase } from "@/lib/mongoose";
 import User from "@/lib/models/user.model";
 
-export const authOptions = {
+export const authOptions: NextAuthConfig = {
     providers: [
         CredentialsProvider({
             name: "credentials",

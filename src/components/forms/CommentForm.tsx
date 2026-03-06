@@ -38,7 +38,7 @@ const CommentForm = ({
       await createComment({
         content: comment.trim(),
         postId,
-        userId: user.id || (user as { _id?: string })._id,
+        userId: user.id || (user as { _id: string })._id,
         parentId,
       });
 

@@ -20,6 +20,7 @@ export type IUpdateUser = {
   email: string;
   bio: string;
   imageUrl?: string;
+  image_url?: string;
   file: File[];
   privacy_setting?: 'public' | 'private' | 'followers_only';
 };
@@ -37,6 +38,7 @@ export type IUpdatePost = {
   postId: string;
   caption: string;
   imageUrl?: string;
+  image_url?: string;
   file: File[];
   location?: string;
   tags?: string;
@@ -50,6 +52,7 @@ export type IUser = {
   username: string;
   email: string;
   imageUrl: string;
+  image_url?: string;
   bio: string;
   role?: string;
   isDeactivated?: boolean;
@@ -64,6 +67,7 @@ export type IPost = {
   _id?: string;
   caption: string;
   imageUrl: string;
+  image_url?: string;
   location?: string;
   tags?: string[];
   creator: IUser;

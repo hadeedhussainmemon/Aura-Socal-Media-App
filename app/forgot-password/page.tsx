@@ -42,7 +42,7 @@ const ForgotPasswordPage = () => {
         title: "Reset email sent! 📧",
         description: "Please check your email and click the reset link.",
       });
-    } catch (error: unkown) {
+    } catch (error: unknown) {
       const err = error as { message?: string };
       console.log('❌ Error sending reset email:', err);
       toast({

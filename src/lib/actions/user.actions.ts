@@ -227,13 +227,13 @@ export async function toggleUserActivation(userId: string) {
     try {
         await connectToDatabase();
         const user = await User.findById(userId);
-        if (!user) return false;
+        if (!user) return null;
 
         user.isDeactivated = !user.isDeactivated;
         await user.save();
-        return true;
+        return JSON.parse(JSON.stringify(user));
     } catch {
-        return false;
+        return null;
     }
 }
 
