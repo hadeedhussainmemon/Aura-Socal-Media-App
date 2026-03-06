@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import useDebounce from "@/hooks/useDebounce";
 
 import { getAllUsersServer, searchUsersServer } from "@/lib/actions/user.actions";
+import { IUser } from "@/types";
 
 const AllUsers = () => {
   const { toast } = useToast();
@@ -18,8 +19,8 @@ const AllUsers = () => {
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 300);
 
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<IUser[]>([]);
+  const [searchResults, setSearchResults] = useState<IUser[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -70,7 +71,7 @@ const AllUsers = () => {
   const isLoading = isSearchMode ? isSearching : isLoadingUsers;
 
   // Filter out current user from the list
-  const otherUsers = displayUsers?.filter((creator: any) => creator._id !== user?.id) || [];
+  const otherUsers = displayUsers?.filter((creator: IUser) => creator._id !== user?.id) || [];
 
   if (isError) {
     toast({ title: "Something went wrong fetching users." });
@@ -142,7 +143,7 @@ const AllUsers = () => {
 
               <ul className="user-grid">
                 {otherUsers?.length > 0 ? (
-                  otherUsers.map((creator: any) => (
+                  otherUsers.map((creator: IUser) => (
                     <li key={creator?._id} className="w-full">
                       <UserCard user={creator} />
                     </li>

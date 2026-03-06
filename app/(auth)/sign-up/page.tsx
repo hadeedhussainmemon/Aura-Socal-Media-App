@@ -12,13 +12,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/shared/Loader";
-import { useToast } from "@/components/ui/use-toast";
 
 import { SignupValidation } from "@/lib/validation";
 
 const SignupForm = () => {
   const router = useRouter();
-  const { toast } = useToast();
   const [isPending, setIsPending] = useState(false);
   const [signUpError, setSignUpError] = useState<string | null>(null);
 
@@ -67,7 +65,7 @@ const SignupForm = () => {
 
       form.reset();
       router.push("/");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Signup error:', error);
       setSignUpError("An unexpected error occurred. Please try again.");
       setIsPending(false);

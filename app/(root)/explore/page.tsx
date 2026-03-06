@@ -9,9 +9,11 @@ import Loader from "@/components/shared/Loader";
 import GridPostList from "@/components/shared/GridPostList";
 import { Input } from "@/components/ui/input";
 
+import { IPost } from "@/types";
+
 export type SearchResultProps = {
   isSearchFetching: boolean;
-  searchedPosts: any;
+  searchedPosts: IPost[];
 };
 
 const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultProps) => {
@@ -27,17 +29,16 @@ const SearchResults = ({ isSearchFetching, searchedPosts }: SearchResultProps) =
 };
 
 const Explore = () => {
-  const { ref, inView } = useInView();
+  const { ref } = useInView();
 
-  const [posts, setPosts] = useState<any[]>([]);
-  const [searchedPosts, setSearchedPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<IPost[]>([]);
+  const [searchedPosts, setSearchedPosts] = useState<IPost[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 500);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSearchFetching, setIsSearchFetching] = useState(false);
   const [isError, setIsError] = useState(false);
-  const [hasNextPage, setHasNextPage] = useState(false); // Future placeholder
 
   const fetchPosts = async () => {
     try {
@@ -172,11 +173,7 @@ const Explore = () => {
         )}
       </div>
 
-      {hasNextPage && !searchValue && (
-        <div ref={ref} className="mt-10">
-          <Loader />
-        </div>
-      )}
+      {/* Pagination placeholder if needed */}
     </div>
   );
 };

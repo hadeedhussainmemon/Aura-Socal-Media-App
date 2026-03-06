@@ -46,10 +46,11 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
       console.log('onDropRejected called with:', fileRejections);
 
       if (fileRejections && Array.isArray(fileRejections) && fileRejections.length > 0) {
-        fileRejections.forEach((rejection: any) => {
-          console.log('Rejected file:', rejection.file);
-          if (rejection.errors) {
-            rejection.errors.forEach((error: { code: string }) => {
+        fileRejections.forEach((rejection) => {
+          const { file, errors } = rejection as { file: File; errors: { code: string }[] };
+          console.log('Rejected file:', file);
+          if (errors) {
+            errors.forEach((error: { code: string }) => {
               console.log('File error:', error);
               if (error.code === 'file-too-large') {
                 setErrorMessage('File size exceeds 2MB limit. Please choose a smaller file.');
