@@ -56,13 +56,16 @@ const Comments = ({ postId, className = "" }: CommentsProps) => {
         </div>
       ) : comments.length > 0 ? (
         <div className="space-y-4">
-          {comments.map((comment: CommentType) => (
-            <CommentItem
-              key={comment.id || comment._id}
-              comment={comment}
-              onCommentUpdated={handleCommentUpdated}
-            />
-          ))}
+          {comments.map((comment: CommentType) => {
+            if (!comment) return null;
+            return (
+              <CommentItem
+                key={comment.id || comment._id}
+                comment={comment}
+                onCommentUpdated={handleCommentUpdated}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-8 text-light-4">

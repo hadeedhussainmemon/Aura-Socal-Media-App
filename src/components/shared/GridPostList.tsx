@@ -24,50 +24,56 @@ const GridPostList = ({
 
   return (
     <ul className="grid-container">
-      {posts.map((post) => (
-        <li key={post.id || post._id} className="relative aspect-square overflow-hidden group/griditem border border-black/50">
-          <Link href={`/posts/${post.id || post._id}`} className="block w-full h-full">
-            <Image
-              src={post.imageUrl || ""}
-              alt="post"
-              width={400}
-              height={400}
-              className="h-full w-full object-cover group-hover/griditem:scale-110 transition-transform duration-700 ease-out"
-            />
-            {/* Subtle overlay gradient on hover for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-dark-1/80 via-transparent to-transparent opacity-60 group-hover/griditem:opacity-80 transition-opacity duration-500"></div>
-          </Link>
+      {posts.map((post) => {
+        if (!post) return null;
+        const postId = post.id || post._id;
+        if (!postId) return null;
 
-          <div className="grid-post_user absolute bottom-0 w-full p-4 flex-between z-10">
-            {showUser && (
-              <Link href={`/profile/${post.creator?.username || post.creator?.id}`} className="flex items-center justify-start gap-2 flex-1 hover:opacity-80 transition-opacity group/user">
-                <Image
-                  src={
-                    post.creator?.imageUrl ||
-                    "/assets/icons/profile-placeholder.svg"
-                  }
-                  alt="creator"
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full object-cover border border-white/20 group-hover/user:border-primary-500/50 transition-colors"
-                />
-                <p className="line-clamp-1 text-light-1 small-medium group-hover/user:aura-text-gradient font-semibold drop-shadow-md">{post.creator?.name}</p>
-              </Link>
-            )}
-            {showStats && (
-              <PostStats
-                post={post}
-                userId={user?.id || (user as { _id?: string })?._id || ""}
-                showComments={showComments}
-                onCommentClick={() => {
-                  // For grid view, navigate to post detail page for comments
-                  window.location.href = `/posts/${post.id || post._id}`;
-                }}
+        return (
+          <li key={postId} className="relative aspect-square overflow-hidden group/griditem border border-black/50">
+            <Link href={`/posts/${postId}`} className="block w-full h-full">
+              <Image
+                src={post.imageUrl || ""}
+                alt="post"
+                width={400}
+                height={400}
+                className="h-full w-full object-cover group-hover/griditem:scale-110 transition-transform duration-700 ease-out"
               />
-            )}
-          </div>
-        </li>
-      ))}
+              {/* Subtle overlay gradient on hover for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-1/80 via-transparent to-transparent opacity-60 group-hover/griditem:opacity-80 transition-opacity duration-500"></div>
+            </Link>
+
+            <div className="grid-post_user absolute bottom-0 w-full p-4 flex-between z-10">
+              {showUser && (
+                <Link href={`/profile/${post.creator?.username || post.creator?.id || post.creator?._id}`} className="flex items-center justify-start gap-2 flex-1 hover:opacity-80 transition-opacity group/user">
+                  <Image
+                    src={
+                      post.creator?.imageUrl ||
+                      "/assets/icons/profile-placeholder.svg"
+                    }
+                    alt="creator"
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 rounded-full object-cover border border-white/20 group-hover/user:border-primary-500/50 transition-colors"
+                  />
+                  <p className="line-clamp-1 text-light-1 small-medium group-hover/user:aura-text-gradient font-semibold drop-shadow-md">{post.creator?.name || 'Aura User'}</p>
+                </Link>
+              )}
+              {showStats && (
+                <PostStats
+                  post={post}
+                  userId={user?.id || (user as { _id?: string })?._id || ""}
+                  showComments={showComments}
+                  onCommentClick={() => {
+                    // For grid view, navigate to post detail page for comments
+                    window.location.href = `/posts/${postId}`;
+                  }}
+                />
+              )}
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 };

@@ -19,7 +19,7 @@ type Notification = {
   action_url?: string;
   read?: boolean;
   created_at: string;
-  user?: { id: string; name: string; username: string; image_url?: string };
+  user?: { id: string; name: string; username: string; image_url?: string; imageUrl?: string };
 };
 
 const NotificationBell = ({ inlineLabel }: { inlineLabel?: string }) => {
@@ -38,7 +38,7 @@ const NotificationBell = ({ inlineLabel }: { inlineLabel?: string }) => {
         if (res.ok) {
           const data = await res.json();
           setNotifications(data || []);
-          setUnreadCount((data || []).filter((n: Notification) => !n.read).length);
+          setUnreadCount((data || []).filter((n: Notification) => n && !n.read).length);
         }
       } catch (error) {
         console.error("Error fetching notifications", error);
@@ -57,7 +57,11 @@ const NotificationBell = ({ inlineLabel }: { inlineLabel?: string }) => {
 
     if (newDropdownState && user) {
       // Mark all as read
-      const unreadIds = notifications.filter(n => !n.read).map(n => n.id || n._id);
+      const unreadIds = notifications
+        .filter(n => n && !n.read)
+        .map(n => n.id || n._id)
+        .filter(Boolean);
+
       if (unreadIds.length > 0) {
         try {
           await fetch(`/api/users/${user.id || (user as { _id?: string })._id}/notifications/read`, {
@@ -66,7 +70,7 @@ const NotificationBell = ({ inlineLabel }: { inlineLabel?: string }) => {
             body: JSON.stringify({ ids: unreadIds })
           });
           // Update local state to reflect read status
-          setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+          setNotifications(prev => prev.map(n => n ? { ...n, read: true } : n));
         } catch (error) {
           console.error(error);
         }
@@ -172,9 +176,9 @@ const NotificationBell = ({ inlineLabel }: { inlineLabel?: string }) => {
                   </svg>
                   Notifications
                 </h3>
-                {notifications.filter(n => !n.read).length > 0 && (
+                {notifications.filter(n => n && !n.read).length > 0 && (
                   <span className="text-xs bg-primary-500/20 text-primary-400 px-2 py-1 rounded-full">
-                    {notifications.filter(n => !n.read).length} new
+                    {notifications.filter(n => n && !n.read).length} new
                   </span>
                 )}
               </div>
@@ -202,59 +206,65 @@ const NotificationBell = ({ inlineLabel }: { inlineLabel?: string }) => {
                 </motion.div>
               ) : (
                 <div className="divide-y divide-dark-4/30">
-                  {notifications.map((n: Notification, index: number) => (
-                    <motion.div
-                      key={n.id || n._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className={`p-4 hover:bg-dark-3/30 transition-colors cursor-pointer ${!n.read ? 'bg-primary-500/5 border-l-2 border-l-primary-500' : ''
-                        }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        {/* Avatar */}
-                        <div className="flex-shrink-0">
-                          <Image
-                            src={n.user?.image_url || "/assets/icons/profile-placeholder.svg"}
-                            alt={n.user?.username || "User"}
-                            width={40}
-                            height={40}
-                            className="w-10 h-10 rounded-full object-cover border border-dark-4"
-                          />
-                        </div>
+                  {notifications.map((n: Notification, index: number) => {
+                    if (!n) return null;
+                    const nid = n.id || n._id;
+                    if (!nid) return null;
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-light-1">
-                            {n.user?.username && (
-                              <span className="font-semibold text-primary-400">{n.user.username}</span>
-                            )}
-                            {n.user?.username ? ' ' : ''}
-                            <span className="text-light-2">{n.message}</span>
+                    return (
+                      <motion.div
+                        key={nid}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`p-4 hover:bg-dark-3/30 transition-colors cursor-pointer ${!n.read ? 'bg-primary-500/5 border-l-2 border-l-primary-500' : ''
+                          }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Avatar */}
+                          <div className="flex-shrink-0">
+                            <Image
+                              src={n.user?.image_url || n.user?.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                              alt={n.user?.username || "User"}
+                              width={40}
+                              height={40}
+                              className="w-10 h-10 rounded-full object-cover border border-dark-4"
+                            />
                           </div>
 
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-xs text-light-4">
-                              {new Date(n.created_at).toLocaleString([], {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                            {!n.read && (
-                              <div className="w-2 h-2 bg-primary-500 rounded-full" />
-                            )}
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-light-1">
+                              {n.user?.username && (
+                                <span className="font-semibold text-primary-400">{n.user.username}</span>
+                              )}
+                              {n.user?.username ? ' ' : ''}
+                              <span className="text-light-2">{n.message}</span>
+                            </div>
+
+                            <div className="flex items-center justify-between mt-2">
+                              <p className="text-xs text-light-4">
+                                {new Date(n.created_at || Date.now()).toLocaleString([], {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                              {!n.read && (
+                                <div className="w-2 h-2 bg-primary-500 rounded-full" />
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Footer (if needed) */}
+            {/* Footer */}
             {notifications.length > 0 && (
               <div className="p-3 border-t border-dark-4/50 bg-dark-3/30">
                 <button

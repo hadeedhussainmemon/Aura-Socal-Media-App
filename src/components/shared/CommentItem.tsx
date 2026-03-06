@@ -42,26 +42,30 @@ type CommentItemProps = {
 };
 
 const CommentItem = ({ comment, onCommentUpdated, level = 0 }: CommentItemProps) => {
+  // HOOKS MUST BE AT THE TOP
   const { data: session } = useSession();
   const user = session?.user;
   const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(comment._count?.likes || 0);
+  const [likesCount, setLikesCount] = useState(comment?._count?.likes || 0);
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
 
+  const { mutateAsync: likeCommentMutate, isPending: isLiking } = useLikeComment();
+  const { mutateAsync: unlikeCommentMutate, isPending: isUnliking } = useUnlikeComment();
+  const { mutateAsync: deleteCommentMutate, isPending: isDeleting } = useDeleteComment();
+
   // Check if user has liked this comment
   useEffect(() => {
-    if (user && comment.likes) {
+    if (user && comment?.likes) {
       const userId = user.id || (user as { _id?: string })._id;
       if (userId) {
         setIsLiked(comment.likes.includes(userId));
       }
     }
-  }, [user, comment.likes]);
+  }, [user, comment?.likes]);
 
-  const { mutateAsync: likeCommentMutate, isPending: isLiking } = useLikeComment();
-  const { mutateAsync: unlikeCommentMutate, isPending: isUnliking } = useUnlikeComment();
-  const { mutateAsync: deleteCommentMutate, isPending: isDeleting } = useDeleteComment();
+  // EARLY RETURN AFTER HOOKS
+  if (!comment || !comment.user) return null;
 
   const handleLike = async () => {
     if (!user || isLiking || isUnliking) return;

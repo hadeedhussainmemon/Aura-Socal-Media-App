@@ -24,7 +24,7 @@ const PostCard = ({ post }: PostCardProps) => {
   const { mutate: deletePost } = useDeletePost();
   const { mutate: likePost } = useLikePost();
 
-  if (!post.creator) return null;
+  if (!post || !post.creator) return null;
 
   const handleCommentClick = () => {
     setShowComments(!showComments);

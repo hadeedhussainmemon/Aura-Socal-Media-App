@@ -12,9 +12,13 @@ type UserCardProps = {
 const UserCard = ({ user }: UserCardProps) => {
   const { data: session } = useSession();
   const currentUser = session?.user;
-  const { data: isCurrentlyFollowing, isLoading: isFollowingLoading } = useIsFollowing(user.id || user._id || "");
+
+  const userId = user?.id || user?._id || "";
+  const { data: isCurrentlyFollowing, isLoading: isFollowingLoading } = useIsFollowing(userId);
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
+
+  if (!user) return null;
 
   const handleFollowToggle = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigation when clicking the button

@@ -50,7 +50,7 @@ const Topbar = () => {
             <Image src="/assets/icons/logout.svg" alt="logout" width={18} height={18} className="hover:scale-110 transition-transform duration-300" />
           </Button>
           <Link
-            href={`/profile/${(user as { username?: string })?.username || (user as { _id?: string })._id}`}
+            href={`/profile/${(user as { username?: string })?.username || (user as { _id?: string })?._id || ''}`}
             className="flex-center group"
           >
             <div className="p-0.5 rounded-full bg-gradient-to-tr from-[#7928CA] to-[#FF0080] group-hover:scale-105 transition-transform duration-300">

@@ -240,6 +240,24 @@ const ProfileWrapper = ({ params }: ProfileWrapperProps) => {
               }
             </p>
           </Button>
+          <Button
+            type="button"
+            className="h-8 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10"
+            onClick={async () => {
+              if (!user?.id || !currentUser?._id) return;
+              try {
+                const { getOrCreateConversation } = await import("@/lib/actions/message.actions");
+                const conversation = await getOrCreateConversation(user.id, currentUser._id);
+                if (conversation) {
+                  router.push(`/messages/${conversation._id}`);
+                }
+              } catch (error) {
+                console.error("Failed to start conversation", error);
+              }
+            }}
+          >
+            <p className="flex whitespace-nowrap subtle-semibold">Message</p>
+          </Button>
           <Button type="button" className="h-8 glass-card px-4 text-light-1 rounded-lg hover:bg-white/10 transition-all duration-300 border border-white/10" onClick={handleShareProfile}>
             <p className="flex whitespace-nowrap subtle-semibold">Share Profile</p>
           </Button>

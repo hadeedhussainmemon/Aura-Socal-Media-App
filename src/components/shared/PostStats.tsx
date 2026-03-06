@@ -21,20 +21,7 @@ type PostStatsProps = {
 };
 
 const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostStatsProps) => {
-
-  // Handle MongoDB post structure
-  const likesList = post.likes ? post.likes.map((like: string | IUser) => {
-    // MongoDB structure: likes is an array of IDs or populated objects
-    if (typeof like === 'string') return like;
-    return (like as IUser)._id || (like as IUser).id;
-  }) : [];
-
-  const [likes, setLikes] = useState<string[]>(likesList);
-  const [isSaved, setIsSaved] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const [authAction, setAuthAction] = useState("");
-
+  // HOOKS MUST BE AT THE TOP
   const { mutate: likePost } = useLikePost();
   const { mutate: deleteLike } = useDeleteLike();
   const { mutate: savePost } = useSavePost();
@@ -42,13 +29,24 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
 
   const { data: currentUser } = useGetCurrentUser(!!userId);
 
+  // Derive likesList safely before hooks that depend on it
+  const likesList = post?.likes ? post.likes.map((like: string | IUser) => {
+    if (!like) return '';
+    if (typeof like === 'string') return like;
+    return (like as IUser)?._id || (like as IUser)?.id || '';
+  }).filter(Boolean) : [];
+
+  const [likes, setLikes] = useState<string[]>(likesList);
+  const [isSaved, setIsSaved] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [authAction, setAuthAction] = useState("");
+
   // Check if post is saved
   useEffect(() => {
     const checkIfSaved = async () => {
-      // Only check saved state if user is authenticated
       if (userId && (currentUser?.id || currentUser?._id) && post?._id) {
         try {
-          // Check if this post is in the saves array for this user
           const savedUsers = post.saves || [];
           const currentUserId = currentUser?.id || currentUser?._id;
           const isCurrentUserSaved = savedUsers.some((id: string) =>
@@ -60,20 +58,21 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
           setIsSaved(false);
         }
       } else {
-        // If no user, post is definitely not saved
         setIsSaved(false);
       }
     };
 
     checkIfSaved();
-  }, [userId, currentUser, post._id, post.saves]);
+  }, [userId, currentUser, post?._id, post?.saves]);
+
+  // EARLY RETURN AFTER HOOKS
+  if (!post) return null;
 
   const handleLikePost = (
     e: React.MouseEvent<HTMLImageElement, MouseEvent>
   ) => {
     e.stopPropagation();
 
-    // Check if user is authenticated
     if (!userId) {
       setAuthAction("like posts");
       setShowAuthPrompt(true);
@@ -84,12 +83,10 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
     let likesArray = [...likes];
 
     if (likesArray.includes(userId)) {
-      // Unlike the post
       likesArray = likesArray.filter((Id) => Id !== userId);
       setLikes(likesArray);
       deleteLike({ postId, userId });
     } else {
-      // Like the post
       likesArray.push(userId);
       setLikes(likesArray);
       likePost({ postId, userId });
@@ -101,7 +98,6 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
   ) => {
     e.stopPropagation();
 
-    // Check if user is authenticated
     if (!userId) {
       setAuthAction("save posts");
       setShowAuthPrompt(true);
@@ -111,12 +107,10 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
     const postId = (post as IPost).id || (post as IPost)._id || "";
 
     if (isSaved) {
-      // If currently saved, unsave it
       setIsSaved(false);
       return deleteSavePost({ postId, userId });
     }
 
-    // If not saved, save it
     savePost({ userId: userId, postId: postId });
     setIsSaved(true);
   };
@@ -126,8 +120,7 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
   ) => {
     e.stopPropagation();
 
-    // Check if Web Share API is supported (mobile)
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       const postUrl = `${window.location.origin}/posts/${post._id}`;
       const shareText = `Check out this post by ${post.creator?.name}: ${post.caption}`;
 
@@ -137,7 +130,6 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
         url: postUrl,
       }).catch((error) => console.log('Error sharing:', error));
     } else {
-      // Show our custom modal for desktop
       setShowShareModal(true);
     }
   };
@@ -201,7 +193,6 @@ const PostStats = ({ post, userId, onCommentClick, showComments = true }: PostSt
         </div>
       </div>
 
-      {/* Like Count positioned below like Instagram */}
       {likes.length > 0 && (
         <div className="w-full mt-2">
           <p className="text-sm font-semibold text-light-1">{likes.length} {likes.length === 1 ? 'like' : 'likes'}</p>
